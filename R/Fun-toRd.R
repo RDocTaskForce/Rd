@@ -250,7 +250,7 @@ if(FALSE){#@testing
     expect_is(x, 'Rd')
     expect_true(length(x)> 5)
 
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     txt <- Rd_rm_srcref(txt)
     x <- txt[['\\examples']]
 
@@ -507,7 +507,7 @@ if(FALSE){#@testing
     expect_is_exactly(val[[1]], 'Rd_TEXT')
     expect_length(val[[1]], 1L)
 
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     txt <- Rd_rm_srcref(txt)
     expect_identical( Rd_canonize_code(rd <- txt[['\\examples']])
                     , txt[['\\examples']]

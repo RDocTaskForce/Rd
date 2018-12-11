@@ -21,20 +21,21 @@
 ### Extensions to S3 class #####
 Rd_get_element <- function(x, ..., drop=TRUE){
     if (...length() != 1L)
-        stop("incorrect number of subscripts")
+        pkg_error( "incorrect number of subscripts"
+                 , type="invalid_subscripts")
     val <- if (is.character(tag <- ..1)){
         assert_that(is.string(tag) == 1)
         tags <- purrr::map_chr(x, get_attr, 'Rd_tag', '')
         i <- which(tags == tag)
-        if (length(i) == 0L) stop(._("tag %s not found", sQuote(tag))) else
-        if (length(i) >= 2L) stop(._("multiple elements matching tag %s found", sQuote(tag))) else
+        if (length(i) == 0L) pkg_error(._("tag %s not found", sQuote(tag)), type="not_found") else
+        if (length(i) >= 2L) pkg_error(._("multiple elements matching tag %s found", sQuote(tag)), type="multiple_found") else
         as.list(x)[[i]]
     } else {
         i <- ..1
         unclass(x)[[...]]
     }
-    if (is.null(val))
-        return(NULL)
+    if (is.null(val)) # This may be an impossible case.
+        return(NULL) # nocov
     if (is(val, 'Rd'))
         return(val)
     tag <- attr(val, 'Rd_tag')
@@ -58,18 +59,20 @@ Rd_get_element <- function(x, ..., drop=TRUE){
         } else
             return(cl(val, c('Rd_tag', 'Rd')))
     }
-    pkg_error("malformed Rd")
+    pkg_error("malformed Rd", type="malformed_Rd") # nocov
 }
 #' @export
 `[[.Rd` <- function(...){Rd_get_element(...)}
 if(FALSE){#@testing [[.Rd & [.Rd
-    test.file <- system.file("examples", "Normal.Rd", package = 'documentation')
+    test.file <- system.file("examples", "Normal.Rd", package = 'Rd')
     txt <- tools::parse_Rd(test.file)
     txt <- Rd_rm_srcref(txt)
     txt <- Rd_unclass(txt)
     class(txt) <- 'Rd'
 
     expect_is_exactly(txt, 'Rd')
+
+    expect_error(txt[[1,2,3]], class="Rd::Rd_get_element-error-invalid_subscripts")
 
     expect_is_exactly(txt[['\\arguments']], 'Rd_tag')
     expect_is_exactly(txt[['\\arguments']][[1]], 'Rd_newline')
@@ -86,11 +89,11 @@ if(FALSE){#@testing [[.Rd & [.Rd
     expect_is_exactly(txt[[c(48, 11)]], "Rd_TEXT")
 }
 
-
 #' @export
 `[.Rd` <- function(x, ..., drop=FALSE){
     if (!(...length() <= length(dim(x) %||% 1L) ))
-        stop("incorrect number of subscripts")
+        pkg_error( "incorrect number of subscripts"
+                 , type="invalid_subscripts")
     if (is.character(tag <- ..1)) {
         tags <- purrr::map_chr(x, get_attr, 'Rd_tag', '')
         i <- which(tags %in% tag)
@@ -99,13 +102,15 @@ if(FALSE){#@testing [[.Rd & [.Rd
     cl(NextMethod('['), 'Rd')
 }
 if(FALSE){#@testing [[.Rd & [.Rd
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_valid(txt)
     expect_true(is.list(txt))
 
     expect_is(txt[[10]], "Rd_tag")
     expect_is(txt[[10]], "Rd")
     expect_valid(txt[[10]])
+
+    expect_error(txt[1,2,3], class="Rd::[.Rd-error-invalid_subscripts")
 
     val <- txt[1]
 
@@ -150,7 +155,7 @@ if(FALSE){#@testing [[.Rd & [.Rd
      , Rd_tag=attr(x, 'Rd_tag'))
 }
 if(FALSE){#@testing
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
 
     x <- txt[['\\arguments']]
     expect_is(x, 'Rd_tag')
@@ -296,7 +301,7 @@ Rd_spans_multiple_lines <- function(x){
     grepl('\\n(?!$)', collapse0(as.character(x)), perl=TRUE)
 }
 if(FALSE){#@testing
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_true(Rd_spans_multiple_lines(txt))
     expect_true(Rd_spans_multiple_lines(txt[['\\arguments']]))
     expect_false(Rd_spans_multiple_lines(txt[['\\arguments']][[3L]]))
@@ -318,7 +323,7 @@ Rd_ends_with_newline <- function(x, keep.class=FALSE){
     grepl('\\n$', collapse0(as.character(if (keep.class) x else unclass(x))))
 }
 if(FALSE){#@testing
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_true(Rd_ends_with_newline(txt))
 
     # ends.with.newline <- purrr::map_lgl(txt, Rd_ends_with_newline)
@@ -335,7 +340,7 @@ Rd_starts_with_newline <- function(x, keep.class=FALSE){
     grepl('^\\n', collapse0(as.character(if (keep.class) x else unclass(x))))
 }
 if(FALSE){#@testing
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_false(Rd_starts_with_newline(txt))
     expect_true(Rd_starts_with_newline(txt[['\\arguments']]))
     expect_false(Rd_starts_with_newline(txt[['\\arguments']], TRUE))
@@ -360,7 +365,7 @@ function(x){
     parts
 }
 if(FALSE){#@testing
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
 
     val <- Rd_split(txt)
     expect_is(val, 'list')
@@ -472,16 +477,20 @@ if(FALSE){#@testing
     expect_is_exactly(x[[1L]], 'Rd_TEXT')
     expect_true(all_inherit(x, c('Rd_TEXT', 'Rd_newline')))
 
-
     x <- Rd(Rd_text('text'))
     expect_is_exactly(x, 'Rd')
     expect_is_exactly(x[[1]], 'Rd_TEXT')
+
+    x <- Rd("Multiple ", "Character strings", " to convert")
+    expect_is_exactly(x, 'Rd')
+    expect_all_inherit(x, "Rd_TEXT")
+    expect_true(all_are_tag(x, 'TEXT'))
 }
 if(FALSE){#@testing Class-Rd
     x <- cl('text', 'Rd')
     expect_is(x, 'Rd')
 
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_is(txt, 'Rd')
     expect_true(validObject(txt))
 }
@@ -582,16 +591,6 @@ if(FALSE){#@testing Rd_rcode, Rd_symb, and Rd_comment
     expect_length(a, 1L)
 }
 
-Rd_tag_ <- function(tag, content, opt=Rd(), control=list()){
-    indent      <- control$indent      %||% FALSE
-    indent.with <- control$indent.with %||% FALSE
-    wrap.lines  <- control$wrap.lines  %||% FALSE
-    wrap.at     <- control$wrap.at     %||% FALSE
-
-    Rd_tag( tag=tag, content=content, opt=opt
-          , indent=indent, indent.with=indent.with
-          , wrap.lines = wrap.lines, wrap.at = wrap.at)
-}
 Rd_tag  <-
 function( tag
         , ...
@@ -633,7 +632,7 @@ if(FALSE){#! @testing
                        , class  = c('Rd_tag', 'Rd')
                        ))
 
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     e <- txt[['\\arguments']][[3L]]
     attr(e, 'srcref') <- NULL
     for (i in seq_along(e)) attr(e[[i]][[1L]], 'srcref') <- NULL
@@ -664,196 +663,3 @@ if(FALSE){#! @testing
 }
 
 
-### Tag Convenience Functions #####
-
-Rd_alias <- function(alias){Rd_tag('alias', Rd_symb(alias)) %if% assert_that(length(alias)==1)}
-Rd_aliases <- function(aliases){Rd_lines(lapply(aliases, Rd_alias), 'Rd')}
-Rd_author <- function(author){
-    if (is(author, 'person'))
-        author <- toRd(author)
-    else
-        assert_that( is(author, 'Rd'), msg="author must be of `Rd` or `person` class.")
-    if (!is_exactly(author, 'Rd')) author <- Rd(author)
-    Rd_tag('author', content=author)
-}
-Rd_arguments <-
-function( ...
-        , items = list(...)
-        , indent= TRUE
-        , indent.with=indent.with
-        ){
-    indent.with <- Rd_clean_indent(indent.with)
-    assert_that( all_are_tag(items, '\\item') )
-    content <- rbind( .Rd.newline
-                    , indent.with %if% indent
-                    , items
-                    )
-    Rd_tag(tag='arguments', content=content, opt=NULL, wrap.lines = FALSE)
-}
-Rd_code <- function(x){Rd_tag('code', Rd_rcode(x))}
-Rd_concept <- function(name){Rd_tag('concept', Rd_text(name))}
-Rd_concepts <- function(concepts){Rd_lines(lapply(concepts, Rd_concept), 'Rd')}
-Rd_description <- function(...) {Rd_tag("description", content=compact_Rd(Rd(...)))}
-Rd_examples <- function(..., content=compact_Rd(Rd(...)), opt=NULL) {
-    Rd_tag('examples', content=content, opt=opt, wrap.lines=FALSE)
-}
-Rd_item <- function(arg, description) {
-    s( list(Rd(arg), Rd(description))
-     , Rd_tag = "\\item"
-     , class = c('Rd_tag', 'Rd'))
-}
-Rd_keyword <- function(name){Rd_tag('keyword', Rd_text(name))}
-Rd_keywords <- function(keys){Rd(lapply(keys, Rd_keyword))}
-Rd_name <- function(name){Rd_tag('name', Rd_symb(name))}
-Rd_title <- function(title){Rd_tag('title', Rd_text(title))}
-Rd_usage <- function(..., content=compact_Rd(Rd(...))){
-    val <- Rd_tag('usage', content=content, opt=NULL, wrap.lines = FALSE)
-    assert_that(all_are_tag(val, c('RCODE', '\\S3method', '\\S4method')))
-    return(val)
-}
-Rd_value <- function(value){Rd_tag('value', content=value)}
-if(FALSE){#@testing Rd_* tags
-    rd <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'documentation'))
-    txt <- Rd_rm_srcref(rd)
-
-    expect_identical(Rd_alias('Normal'), txt[[12L]])
-
-    expect_identical(Rd_author(Rd('My Name')), Rd_author(Rd_text('My Name')))
-
-    expect_equal( val <- Rd_arguments( Rd_item("x, q", "vector of quantiles.")
-                              , Rd_item('p', "vector of probabilities.")
-                              , indent = TRUE
-                              , indent.with = "  "
-                              ), x <- txt[['\\arguments']][1:7])
-
-    desc <- Rd_description( .Rd.newline
-                          , Rd_text("  Density, distribution function, quantile function and random\n")
-                          , Rd_text("  generation for the normal distribution with mean equal to ")
-                            ,  Rd_tag('code', Rd_rcode('mean')), .Rd.newline
-                          , Rd_text("  and standard deviation equal to ")
-                            , Rd_tag('code', Rd_rcode('sd'))
-                          , Rd_text(".\n")
-                          )
-    expect_identical( collapse0(as.character(desc))
-                    , collapse0(as.character(txt[['\\description']])))
-
-    expect_identical( Rd_examples( .Rd.code.newline
-                                 , Rd_rcode("require(graphics)\n")
-                                 , .Rd.code.newline
-                                 , Rd_rcode("dnorm(0) == 1/sqrt(2*pi)\n")
-                                 , Rd_rcode("dnorm(1) == exp(-1/2)/sqrt(2*pi)\n")
-                                 , Rd_rcode("dnorm(1) == 1/sqrt(2*pi*exp(1))\n")
-                                 )
-                      , txt[[52]][1:6] )
-    expect_identical( Rd_examples( content=Rd( .Rd.code.newline
-                                             , Rd_rcode("require(graphics)\n")
-                                             , .Rd.code.newline
-                                             , Rd_rcode("dnorm(0) == 1/sqrt(2*pi)\n")
-                                             , Rd_rcode("dnorm(1) == exp(-1/2)/sqrt(2*pi)\n")
-                                             , Rd_rcode("dnorm(1) == 1/sqrt(2*pi*exp(1))\n")
-                                             ))
-                      , txt[[52]][1:6] )
-
-    expect_identical( Rd_item("x, q", "vector of quantiles.")
-                    , txt[['\\arguments']][[3L]]
-                    )
-
-    expect_identical( Rd_keyword('distribution'), txt[['\\keyword']])
-    expect_identical( Rd_name('Normal'), txt[['\\name']])
-    expect_identical(Rd_title('The Normal Distribution'), txt[['\\title']])
-
-    expect_identical(Rd_usage( .Rd.code.newline
-                               , Rd_rcode("dnorm(x, mean = 0, sd = 1, log = FALSE)\n")
-                               , Rd_rcode("pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)\n")
-                               , Rd_rcode("qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)\n")
-                               , Rd_rcode("rnorm(n, mean = 0, sd = 1)\n")
-    ), txt[['\\usage']])
-}
-
-### Rd Utilities #####
-#nocov start
-Rd_rm_srcref <- function(rd){
-    attr(rd, 'srcref') <- NULL
-    if (is.list(rd)) for(i in seq_along(rd))
-        rd[[i]] <- Recall(rd[[i]])
-    return(rd)
-}
-Rd_unclass <- function(rd){
-    attr(rd, 'class') <- NULL
-    if (is.list(rd)) for(i in seq_along(rd))
-        rd[[i]] <- Recall(rd[[i]])
-    return(rd)
-}
-Rd_untag <- function(x)s(x, Rd_tag=NULL, class='Rd')
-get_Rd_tag <- function(x)get_attr(x, 'Rd_tag')
-#nocov end
-.Rd_get_indent <- function(x){
-    if (!inherits(x, 'Rd')){
-        ws <- gsub("^( *)[^ ].*$", "\\1", x)
-        if (length(x)==1) {
-            if (nchar(ws)==0) return(NULL)
-            else return(s( ws
-                         , Rd_tag = "TEXT"
-                         , class = c('Rd_indent', 'Rd_TEXT', 'Rd_tag', 'Rd')
-                         ))
-        } else {
-            sapply(ws, function(ws)
-                if (nchar(ws)==0L) return(NULL) else
-                s( ws
-                 , Rd_tag = "TEXT"
-                 , class = c('Rd_indent', 'Rd_TEXT', 'Rd_tag', 'Rd')
-                 ))
-        }
-    } else {
-        indent <- NULL
-        for (i in seq_along(x)) {
-            if (!inherits(x[[i]], 'Rd_indent')) break
-            else indent <- paste0(indent, x[[i]])
-        }
-        if (is.null(indent)) return(NULL)
-        return(s( indent
-                , Rd_tag = "TEXT"
-                , class = c('Rd_indent', 'Rd_TEXT', 'Rd_tag', 'Rd')
-                ))
-    }
-}
-if(FALSE){
-    x <- "   hello world"
-    indent <- .Rd_get_indent(x)
-    expect_is(indent, 'Rd_indent')
-    expect_is(indent, 'Rd_TEXT')
-    expect_is(indent, 'Rd_tag')
-    expect_is(indent, 'Rd')
-    expect_equivalent(unclass(indent), "   ")
-    expect_null(.Rd_get_indent("hello world"))
-
-    x <- c( 'hello', ' big', '  wide', '   world')
-    indent <- .Rd_get_indent(x)
-    expect_null(indent[[1]])
-    expect_all_inherit(indent[-1], 'Rd_indent')
-    expect_all_inherit(indent[-1], 'Rd_TEXT')
-
-    x <- Rd_text(c("     hello world"))
-    expect_is(x[[1]], 'Rd_indent')
-    indent <- .Rd_get_indent(x)
-    expect_identical(indent, x[[1]])
-}
-
-Rd_lines <- function(l, ...){
-    assert_that(is.list(l), all_inherit(l, 'Rd'))
-    val <- if (all_are_tag(l, 'RCODE'))
-            Rd_canonize(cl(undim(rbind(l, .Rd.code.newline)), 'Rd'), ...)
-        else
-            Rd_canonize(cl(undim(rbind(l, .Rd.newline)), 'Rd'), ...)
-    if (tail(val, 1L)=='\n')
-        val <- head(val, -1L)
-    return(val)
-}
-if(FALSE){#@testing
-    l <- list( Rd_rcode("value \\%if\\% proposition")
-             , Rd_rcode("proposition \\%otherwise\\% alternate"))
-    exp <- Rd( Rd_rcode("value \\%if\\% proposition\n")
-             , Rd_rcode("proposition \\%otherwise\\% alternate\n"))
-    val <- Rd_lines(l)
-    expect_identical(val, exp)
-}

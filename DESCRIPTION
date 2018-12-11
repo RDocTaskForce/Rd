@@ -32,3 +32,5 @@ Collate:
     'util-aliases.R'
     'Class-Rd.R'
     'Fun-toRd.R'
+    'convenience.R'
+    'util-Rd.R'
