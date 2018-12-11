@@ -183,7 +183,7 @@ function(indent.with){
             indent.with[[1L]] <- cl(indent.with[[1L]], 'Rd_indent')
         assert_that(is(indent.with[[1L]], 'Rd_indent'))
         if (grepl('\\t', indent.with))
-            doc_warning( type='guidelines_violation'
+            pkg_warning( type='guidelines_violation'
                          , ._("Tabs are discouraged from being used for indentation" %<<%
                               "as they may not be rendered properly on all possible pagers." %<<%
                               "See https://developer.r-project.org/Rds.html for reference.")

@@ -241,21 +241,23 @@ if(FALSE){#@testing
 }
 
 Rd_is_all_text <- function(x, label=NULL){
-    act <- testthat::quasi_label(rlang::enquo(x), label)
+    label <- label %||% deparse(substitute(x))
     assert_that(inherits(x, 'Rd'))
-    if (is(x, .Rd.text.classes) && assert_that(is.character(x))) return(TRUE)
-    val <- all_inherit(x, .Rd.text.classes, label = act$lab)
-    if (val) return(val)
-    bad.elements = attr(val, 'bad.elements')
+    if ( inherits(x, .Rd.text.classes)
+      && assert_that(is.character(x))
+       ) return(TRUE)
+    is.text <- sapply(x, inherits, .Rd.text.classes)
+    if (all(is.text)) return(TRUE)
+    bad.elements = which(!is.text)
     msg <- if (length(bad.elements) > 1L) {
-        ._("%s has bad elements at positions %s which are not a `TEXT` type for Rd"
-          , act$lab
+        ._("`%s` has bad elements at positions %s which are not a `TEXT` type for Rd"
+          , label
           , comma_list(bad.elements)
           )
     } else {
         bad.class <- purrr::map_chr(x[bad.elements], class0)
-        ._("%s has a bad element at position %s which is not a `TEXT` type for Rd. It is a %s"
-          , act$lab
+        ._("`%s` has a bad element at position %s which is not a `TEXT` type for Rd. It is a %s"
+          , label
           , comma_list(bad.elements)
           , dQuote(bad.class)
           )

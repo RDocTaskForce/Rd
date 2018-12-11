@@ -54,27 +54,6 @@ if(FALSE){#@testing
     expect_identical(undim(x), 1:6)
 }
 
-#' Shortcut for creating text vectors without quotes.
-.T <- function(...) #< names and literal strings.
-{
-    x <- substitute(c(...))
-    val <- as.character(x)
-    if (!is.null(n <- names(x)))
-        names(val) <- ifelse( is.na(n) | n == ''
-                            , as.character(x)
-                            , names(x))
-    return(val[-1L])
-    #' @return a character vector, optionally with names.
-}
-if(FALSE){#@testing
-    expect_equal(.T(._, s, cl, .T)
-                , c('._', 's', 'cl', '.T')
-                )
-    expect_equal( .T(a=._, s, cl, .T)
-                , c(a='._', s='s', cl='cl', .T='.T')
-                )
-}
-
 named <- function(...){
     . <- substitute(c(...))
     inferred <- as.character(.)[-1L]

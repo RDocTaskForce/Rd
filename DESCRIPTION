@@ -10,16 +10,19 @@ Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 License: GPL-2
 Description: R Documenation (Rd) as an R object creation and manipulation.
 Imports:
-    assertthat, 
+    assertthat,
+    methods,
     pkgcond,
     postlogic,
+    purrr,
+    testextra,
     tools,
     utils 
 Suggests:
     covr,
     htmltools,
     rmarkdown (>= 1.8),
-    testextra,
+    stringi,
     testthat
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
