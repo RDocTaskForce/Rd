@@ -1,5 +1,4 @@
-#' @include setup.R
-#' @include utils.R
+#' @include util-aliases.R
 
 # Classes Rd and Rd_tag are set in the file setup-set_old_classes.R
 
@@ -59,7 +58,7 @@ Rd_get_element <- function(x, ..., drop=TRUE){
         } else
             return(cl(val, c('Rd_tag', 'Rd')))
     }
-    doc_error("malformed Rd")
+    pkg_error("malformed Rd")
 }
 #' @export
 `[[.Rd` <- function(...){Rd_get_element(...)}
@@ -423,8 +422,8 @@ if(FALSE){#@testing
 #' @export
 Rd <-
 function( ... #< elements of Rd.
-        , wrap.lines     = default(wrap.lines    , FALSE)
-        , wrap.at        = default(wrap.at       , 72L)
+        , wrap.lines     = FALSE
+        , wrap.at        = 72L
         ){
     if (...length() == 0L) return(invisible(cl(list(), 'Rd'))) else
     if (...length() == 1L) {
@@ -582,10 +581,10 @@ if(FALSE){#@testing Rd_rcode, Rd_symb, and Rd_comment
 }
 
 Rd_tag_ <- function(tag, content, opt=Rd(), control=list()){
-    indent      <- control$indent      %||% default(indent      , FALSE, fun = 'Rd', suffix = c('Rd_tag', 'Rd_tag_'))
-    indent.with <- control$indent.with %||% default(indent.with , FALSE, fun = 'Rd', suffix = c('Rd_tag', 'Rd_tag_'))
-    wrap.lines  <- control$wrap.lines  %||% default(wrap.lines  , FALSE, fun = 'Rd', suffix = c('Rd_tag', 'Rd_tag_'))
-    wrap.at     <- control$wrap.at     %||% default(wrap.at     , FALSE, fun = 'Rd', suffix = c('Rd_tag', 'Rd_tag_'))
+    indent      <- control$indent      %||% FALSE
+    indent.with <- control$indent.with %||% FALSE
+    wrap.lines  <- control$wrap.lines  %||% FALSE
+    wrap.at     <- control$wrap.at     %||% FALSE
 
     Rd_tag( tag=tag, content=content, opt=opt
           , indent=indent, indent.with=indent.with
@@ -596,10 +595,10 @@ function( tag
         , ...
         , content=.Rd(...)
         , opt = Rd()
-        , indent         = default(indent, FALSE)
-        , indent.with    = default(indent.with, .Rd.default.indent)
-        , wrap.lines     = default(wrap.lines    , FALSE)
-        , wrap.at        = default(wrap.at       , 72L  )
+        , indent         = FALSE
+        , indent.with    = .Rd.default.indent
+        , wrap.lines     = FALSE
+        , wrap.at        = 72L
         ){
     assert_that( is.string(tag)
                , length(opt) == 0L || inherits(opt, 'Rd')
@@ -678,8 +677,8 @@ Rd_author <- function(author){
 Rd_arguments <-
 function( ...
         , items = list(...)
-        , indent=default(indent, TRUE)
-        , indent.with=default(indent.with, .Rd.default.indent, fun='Rd')
+        , indent= TRUE
+        , indent.with=indent.with
         ){
     indent.with <- Rd_clean_indent(indent.with)
     assert_that( all_are_tag(items, '\\item') )
@@ -722,7 +721,7 @@ if(FALSE){#@testing Rd_* tags
     expect_equal( val <- Rd_arguments( Rd_item("x, q", "vector of quantiles.")
                               , Rd_item('p', "vector of probabilities.")
                               , indent = TRUE
-                              , indent.with = space(2)
+                              , indent.with = "  "
                               ), x <- txt[['\\arguments']][1:7])
 
     desc <- Rd_description( .Rd.newline

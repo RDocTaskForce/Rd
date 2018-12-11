@@ -1,5 +1,4 @@
-#' @include Classes.R
-#' @include Fun-default.R
+#' @include Class-Rd.R
 #' @importFrom tools toRd
 
 
@@ -14,7 +13,7 @@ function(obj, ...){
     if (is_exactly(ans, 'Rd')) return(ans)
     if (is(ans, 'Rd')) return(s(list(ans), class='Rd'))
     else
-        doc_error(._( "Method of generic function %1$s for class %2$s" %<<%
+        pkg_error(._( "Method of generic function %1$s for class %2$s" %<<%
                       "returned a %4$s." %<<%
                       "Methods of %1$s are expected to retun a %3$s vector."
                     , sQuote("toRd"), dQuote(class(obj))
@@ -45,7 +44,7 @@ if(FALSE){#@testing
 if(FALSE){#@testing
     toRd.test_class <- function(obj, ...)obj
     expect_error( toRd(cl(1L, 'test_class'))
-                , class = "documentation-error")
+                , class = "Rd-error")
 }
 # set_option_documentation( "documentation::Rd::indent"
 #    , description = "Determines if code should be indented when formatted.  Should default to FALSE when unset."
@@ -190,10 +189,10 @@ function(indent.with){
                               "See https://developer.r-project.org/Rds.html for reference.")
             )
         if (any(grepl('\\n', as.character(indent.with))))
-            doc_error( ._("Newlines are not allowed in indent.with"))
+            pkg_error( ._("Newlines are not allowed in indent.with"))
         return(indent.with)
     }
-    doc_error("bad indent")
+    pkg_error("bad indent")
 }
 
 .Rd_indent <-
@@ -210,7 +209,7 @@ function( x   #< Rd object.
             return(forward_attributes(paste0(indent.with, x),x))
         else if (is_exactly(x, 'Rd_newline')) return(x)
         else
-            doc_error("Unknown Rd type" %<<% sQuote(collapse(class(x), '/')))
+            pkg_error("Unknown Rd type" %<<% sQuote(collapse(class(x), '/')))
     }
     assert_that(is.list(x))
     if (!Rd_spans_multiple_lines(x)) return(x)
@@ -262,7 +261,7 @@ if(FALSE){#@testing
     expect_is(val, 'Rd_tag')
     expect_identical( stringi::stri_split_lines1(collapse0(as.character(val)))
                     , stringi::stri_split_lines1(collapse0(as.character(x))) %>%
-                        ifelse(. %in% c('\\examples{', '}', ''), ., paste0(space(4), .))
+                        ifelse(. %in% c('\\examples{', '}', ''), ., paste0("    ", .))
                     )
     expect_equal(length(val), length(x))
 
@@ -295,7 +294,7 @@ if(FALSE){#@testing
                   "}"
                 )
 }
-if(FALSE){#@testing .Rd_indent specification by options
+if(FALSE){# deprecated testing .Rd_indent specification by options
     x <- Rd_canonize(Rd(Rd_text(c("test strings\n", "second line"))))
     withr::with_options(list( "documentation::Rd::indent" = TRUE
                             , "documentation::Rd::indent.with" = NULL), {
@@ -435,7 +434,7 @@ if(FALSE){#@testing
                     , base::strwrap(x, 50)
                     )
 }
-if(FALSE){#@testing .Rd_strwrap specification by options
+if(FALSE){# deprecated testing .Rd_strwrap specification by options
     withr::with_options(list( "documentation::Rd::wrap.lines" = TRUE
                             , "documentation::Rd::wrap.at"    = 50), {
         x <- Rd_text(stringi::stri_rand_lipsum(1))
@@ -459,10 +458,10 @@ if(FALSE){#@testing .Rd_strwrap preservation of line breaks.
 }
 
 Rd_canonize <- function(rd, ..., control = list(...)){
-    indent      <- control$indent      %||% get_option("documentation::Rd::toRd::indent", FALSE)
-    indent.with <- control$indent.with %||% get_option("documentation::Rd::toRd::indent.with", .Rd.default.indent)
-    wrap.lines  <- control$wrap.lines  %||% get_option("documentation::Rd::toRd::wrap.lines", FALSE)
-    wrap.at     <- control$wrap.at     %||% get_option("documentation::Rd::toRd::wrap.at", 72L)
+    indent      <- control$indent      %||% FALSE              # get_option("documentation::Rd::toRd::indent", FALSE)
+    indent.with <- control$indent.with %||% .Rd.default.indent # get_option("documentation::Rd::toRd::indent.with", .Rd.default.indent)
+    wrap.lines  <- control$wrap.lines  %||% FALSE              # get_option("documentation::Rd::toRd::wrap.lines", FALSE)
+    wrap.at     <- control$wrap.at     %||% 72L                # get_option("documentation::Rd::toRd::wrap.at", 72L)
 
     assert_that( is.flag(indent)
                , is.flag(wrap.lines)
@@ -532,7 +531,7 @@ if(FALSE){#@testing
     expect_identical(Rd_canonize_text(.Rd.newline), .Rd.newline)
 
 
-    x <- c( Rd_tag("item"), Rd_text(space(1)), Rd_text("content"))
+    x <- c( Rd_tag("item"), Rd_text(" "), Rd_text("content"))
     expect_identical(Rd_canonize_text(x)[[1]], Rd_tag('item'))
 }
 
@@ -600,7 +599,7 @@ if(FALSE){#@testing
 toRd.person<-
 function( obj
         , ...
-        , name.parts = default(name.parts, c('given', 'family', 'email'))
+        , name.parts = c('given', 'family', 'email')
         ){
     comma_list(format( obj, include = name.parts
                      , braces  = list(email = c('\\email{', '}'))

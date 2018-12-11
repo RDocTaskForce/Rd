@@ -1,3 +1,4 @@
+#' @include setup-set_old_classes.R
 
 #' alias for structure
 #'
@@ -45,7 +46,13 @@ if(FALSE){#@testing
                     , structure('text', class='class'))
 }
 
+undim <- function(x)s(x, dim=NULL)
+if(FALSE){#@testing
+    x <- matrix(1:6, 2, 3)
+    dimnames(x) <- list(rows = c('a', 'b'), cols = c('x', 'y', 'z'))
 
+    expect_identical(undim(x), 1:6)
+}
 
 #' Shortcut for creating text vectors without quotes.
 .T <- function(...) #< names and literal strings.
@@ -91,7 +98,7 @@ if(FALSE){#@testing
 
 
 clean_Rd <- tools:::toRd.default
-
+`%||%` <- function (x, y){if (is.null(x)) y else x}
 get_attr <- function(x, which, default=NULL, exact=TRUE)
     attr(x, which=which, exact=exact) %||% default
 if(FALSE){#@testing
@@ -132,34 +139,13 @@ no_attributes <- function(object){
 
 no_src <- function(object){s(object, srcref=NULL, wholeSrcref=NULL, srcfile=NULL)}
 
-regex_escape <- function(x){
-    gsub('(\\\\^|\\$|\\.|\\||\\?|\\*|\\+|\\(|\\)|\\[|\\{)', '\\\\\\1', x)
+is_whitespace <- function(x){
+    grepl("^\\s+$", x)
 }
 if(FALSE){#@testing
-    expect_identical(regex_escape('Vector(name)'), 'Vector\\(name\\)')
-    expect_identical(regex_escape('my.function'), 'my\\.function')
+    expect_true(is_whitespace(" "))
+    expect_true(is_whitespace("\t"))
+    expect_false(is_whitespace("t"))
+    expect_false(is_whitespace(""))
 }
-
-getAs <- function(from, to, where = NULL){
-    if (isS4(from) &&.hasSlot(from, 'className'))
-        from <- from@className
-    if (isS4(to) &&.hasSlot(to, 'className'))
-        to <- to@className
-
-    if (is.null(where))
-        where <- attr(to, 'package') %||% attr(from, 'package') %||% topenv(parent.frame())
-    if (is.character(where))
-        where <- asNamespace(where)
-    assert_that(is(where, 'environment'))
-
-    getMethod('coerce', c(from, to), where=where)
-}
-if(FALSE){#@testing
-    f <- getAs( getClass('MethodDefinition')
-              , getClass("usage/S4method")
-              )
-    expect_is(f, 'MethodDefinition')
-}
-
-
 
