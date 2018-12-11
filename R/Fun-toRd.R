@@ -375,7 +375,6 @@ function( x
                    , is.character(x)
                    , is.null(attr(x, 'Rd_option'))
                    )
-        # indent <- nchar(.Rd_get_indent(x))
 
         lines <- base::strwrap(x, width=wrap.at, simplify = TRUE)
         if (length(lines) <=1) return(x)
