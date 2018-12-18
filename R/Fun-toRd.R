@@ -63,111 +63,6 @@ if(FALSE){#@testing
                               , class=c('Rd_indent', 'Rd_TEXT', 'Rd_tag', 'Rd')
                               )), class= 'Rd')
 
-#' Canonize Rd Text/Code
-#'
-#' Cannonical text and code are the forms that would come out from reading
-#' an Rd file via, <tools::parse_Rd>.
-#' Cannonical Rd Text has:
-#'
-#' * One line per element, with `attr(., 'Rd_tag')=='TEXT'`
-#' * the line may not contain a newline within the content but may end the line.
-#' * new lines that are in an element by themselves are classed as an 'Rd_newline'.
-#'
-#' Cannonical Rd code follows the following rules:
-#'
-#' * One line per line of code.
-#' * newline is included at the end of the line string,
-#'   not as a separate element.
-#' * if there are multiple lines they are bound together in an Rd or Rd_tag list.
-#'
-Rd_canonize_text <- function(rd){
-    assert_that(is(rd, 'Rd'))
-    if (length(rd)==0) return(rd)
-    if (is.character(rd)) {
-        if (!is_exactly(rd, 'Rd_TEXT')) return(rd)
-        if (length(rd) > 1L) rd <- forward_attributes(collapse0(rd), rd)
-        if (!any(grepl('\\n(?!$)', rd, perl=TRUE))) return(rd)
-        rd <- Rd(rd)
-    }
-    assert_that(is.list(rd))
-    if (!Rd_is_all_text(rd)) {
-        i <- purrr::map_lgl(rd, is, 'Rd_TEXT')
-        if (!any(i))
-            return(forward_attributes(lapply(rd, Rd_canonize_text), rd))
-        group <- cumsum(abs(!i | c(FALSE, head(!i, -1))))
-        is.text <- purrr::map_lgl(split(i, group), all)
-        parts <- split(s(rd, class='Rd'), group)
-
-        for (j in seq_along(parts))
-            parts[[j]] <- Recall(parts[[j]])
-
-        return(forward_attributes( compact_Rd(parts, FALSE), rd))
-
-    }
-    type <- unique(purrr::map_chr(rd, get_attr, 'Rd_tag', ''))
-    assert_that(length(type)<=1L)
-
-    lines <- unlist(stringi::stri_split(collapse0(unlist(rd)), regex="(?<=\\n)"))
-    lines <- lines[nchar(lines) > 0L]
-
-    if (length(lines) == 1){
-        if (lines =='\n') return(.Rd.newline)
-        return(forward_attributes(list(Rd_text(lines)), rd))
-    }
-    lines <- ifelse( lines=='\n'
-                   , .Rd.newline
-                   , ifelse( is_whitespace(lines)
-                           , lapply(lines, structure
-                                   , Rd_tag="TEXT"
-                                   , class=c('Rd_indent', 'Rd_TEXT', 'Rd_tag', 'Rd'))
-                           , lapply(lines, Rd_text, type=type))
-                           )
-    return(forward_attributes(lines, rd))
-}
-Rd_canonize_code <- function(rd){
-    assert_that(is(rd, 'Rd'))
-    if (length(rd)==0) return(rd)
-    if (is.character(rd)) {
-        if (!is(rd, 'Rd_RCODE')) return(rd)
-        if (length(rd) > 1L) rd <- forward_attributes(collapse0(rd), rd)
-        if (!any(grepl('\\n(?!$)', rd, perl=TRUE))) return(rd)
-        rd <- Rd(rd)
-    }
-    assert_that(is.list(rd))
-    if (!all_inherit(rd, c("Rd_RCODE", "NULL"))) {
-        return(forward_attributes( lapply(rd, Rd_canonize_code), rd))
-    }
-    type <- unique(purrr::map_chr(rd, get_attr, 'Rd_tag', ''))
-    assert_that(length(type)==1L)
-
-    lines <- stringi::stri_split(collapse0(unlist(rd)), regex="(?<=\\n)")[[1]]
-    lines <- lines[nchar(lines)>0L]
-    lines <- ifelse( lines == '\n'
-                   , .Rd.code.newline
-                   , lapply(lines, Rd_text, type=type)
-                   )
-    return(forward_attributes(lines, rd))
-}
-if(FALSE){#@testing
-    x <- Rd_usage( .Rd.code.newline
-                 , Rd_rcode('value \\%if\\% proposition'), .Rd.code.newline
-                 , Rd_rcode('value \\%if\\% proposition \\%otherwise\\% alternate'), .Rd.code.newline
-                 )
-    y <- x[2:3]
-
-    expect_identical( Rd_canonize_code(y)
-                    , Rd_usage(Rd_rcode("value \\%if\\% proposition\n"))
-                    )
-    expect_identical(Rd_canonize_text(y), y)
-
-
-    expect_identical( val<-Rd_canonize_code(x)
-                    , Rd_usage( .Rd.code.newline
-                              , Rd_rcode("value \\%if\\% proposition\n")
-                              , Rd_rcode("value \\%if\\% proposition \\%otherwise\\% alternate\n")
-                              ) )
-
-}
 
 Rd_clean_indent <-
 function(indent.with){
@@ -232,7 +127,7 @@ function( x   #< Rd object.
                                 , indent.first = indent.first && !is(x, 'Rd_tag'))
     is.nl <- purrr::map_lgl(parts, is_Rd_newline)
     is.code <- purrr::map_lgl(parts, is, 'Rd_RCODE')
-    indent.code <- .Rd(cl(Rd_rcode(as.character(indent.with)), 'Rd_indent'))
+    indent.code <- Rd(cl(Rd_rcode(as.character(indent.with)), 'Rd_indent'))
     indents <- ifelse(is.nl, Rd(), ifelse(is.code, indent.code, indent.with))
     if (!indent.first)
         indents[[1]] <- Rd()
@@ -456,83 +351,6 @@ if(FALSE){#@testing .Rd_strwrap preservation of line breaks.
                     )
 }
 
-Rd_canonize <- function(rd, ..., control = list(...)){
-    indent      <- control$indent      %||% FALSE              # get_option("documentation::Rd::toRd::indent", FALSE)
-    indent.with <- control$indent.with %||% .Rd.default.indent # get_option("documentation::Rd::toRd::indent.with", .Rd.default.indent)
-    wrap.lines  <- control$wrap.lines  %||% FALSE              # get_option("documentation::Rd::toRd::wrap.lines", FALSE)
-    wrap.at     <- control$wrap.at     %||% 72L                # get_option("documentation::Rd::toRd::wrap.at", 72L)
-
-    assert_that( is.flag(indent)
-               , is.flag(wrap.lines)
-               , is.count(wrap.at))
-
-    if (is_exactly(rd, 'list'))
-        rd <- cl(rd, 'Rd')
-    else if(is.character(rd) && assert_that(is(rd, 'Rd')))
-        rd <- Rd(rd)
-    if (wrap.lines)
-        rd <- .Rd_strwrap(rd, wrap.lines=wrap.lines, wrap.at=wrap.at)
-    rd <- Rd_canonize_text(rd)
-    rd <- Rd_canonize_code(rd)
-    if (indent)
-        rd <- .Rd_indent(rd, indent=indent, indent.with=indent.with)
-    return(rd)
-}
-if(FALSE){#@testing
-    rd <- Rd_text("a\nb\nc\n")
-    expect_is(rd, 'Rd_TEXT')
-    expect_true(is.character(rd))
-    expect_length(rd, 1)
-
-    val <- Rd_canonize_text(rd)
-    expect_is(rd, 'Rd')
-    expect_true(Rd_is_all_text(rd))
-
-    rd <- Rd_examples(Rd( .Rd.code.newline
-                        , Rd_rcode("x<- rnorm(100)\n")
-                        , Rd_rcode("plot(x)\n")))
-    expect_identical(Rd_canonize_text(rd), rd)
-    expect_identical(Rd_canonize_code(rd), rd)
-
-    Rd_canonize(Rd_canonize_text(rd))
-
-    expect_identical(Rd_canonize_code(Rd_examples(Rd_rcode("\nx<- rnorm(100)\nplot(x)\n"))), rd)
-
-    rd <- Rd(c( "use the \\backslash to escape."
-                 , "and '{}' to group."
-                 ))
-    val <- Rd_canonize_text(rd)
-    expect_is_exactly(val, 'Rd')
-    expect_is_exactly(val[[1]], 'Rd_TEXT')
-    expect_length(val[[1]], 1L)
-
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
-    txt <- Rd_rm_srcref(txt)
-    expect_identical( Rd_canonize_code(rd <- txt[['\\examples']])
-                    , txt[['\\examples']]
-                    )
-
-    desc <- txt[['\\description']]
-    canonical <- Rd_canonize_text(desc)
-    expect_identical( as.character(desc)
-                    , as.character(canonical)
-                    )
-
-    expect_identical(Rd_canonize_text(txt), txt)
-    expect_identical(Rd_canonize_code(txt), txt)
-    expect_identical(Rd_canonize(txt), txt)
-
-    x <- Rd_text(c("test strings\n", "second line"))
-    val <- Rd_canonize(x)
-    expected <- Rd(Rd_text("test strings\n"), Rd_text("second line"))
-    expect_identical(val, expected)
-
-    expect_identical(Rd_canonize_text(.Rd.newline), .Rd.newline)
-
-
-    x <- c( Rd_tag("item"), Rd_text(" "), Rd_text("content"))
-    expect_identical(Rd_canonize_text(x)[[1]], Rd_tag('item'))
-}
 
 
 # S3 Methods ----------------------------------------------------------
@@ -547,7 +365,7 @@ if(FALSE){#@testing
     expect_identical(toRd(NULL), Rd())
 }
 
-#' @S3method toRd list
+#' @export
 toRd.list <- function(obj, ...){
     val <- lapply(obj, toRd, ...)
     val <- compact_Rd(val)
@@ -575,7 +393,7 @@ if(FALSE){#@testing
 
 
 
-#' @S3method toRd Rd
+#' @export
 toRd.Rd <- function(obj, ...){
     assert_that( is(obj, 'Rd')
                , is.character(obj)  %if% is(obj, c('Rd_TEXT', 'Rd_RCODE'))
@@ -594,7 +412,7 @@ if(FALSE){#@testing
 
 
 
-#' @S3method toRd person
+#' @export
 toRd.person<-
 function( obj
         , ...

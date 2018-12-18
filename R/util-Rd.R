@@ -12,7 +12,7 @@ Rd_unclass <- function(rd){
     return(rd)
 }
 Rd_untag <- function(x)s(x, Rd_tag=NULL, class='Rd')
-get_Rd_tag <- function(x)get_attr(x, 'Rd_tag')
+get_Rd_tag <- function(x, ...)get_attr(x, 'Rd_tag', ...)
 if(FALSE){#@testing cleanup utilities.
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_is(txt, 'Rd')
@@ -30,7 +30,6 @@ if(FALSE){#@testing cleanup utilities.
     expect_equal(get_Rd_tag(txt[[1]]), "COMMENT")
     expect_null(get_Rd_tag(Rd_untag(txt[[1]])))
 }
-
 
 Rd_lines <- function(l, ...){
     assert_that(is.list(l), all_inherit(l, 'Rd'))
