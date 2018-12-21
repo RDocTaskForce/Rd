@@ -1,11 +1,19 @@
 #' @include setup-set_old_classes.R
+#' @importFrom purrr %||%
 
-#' alias for structure
+#' @name aliases
+#' @title Internal Utilities
 #'
-#' @param .Data An object, any object.
-#' @param ...   Attributes, names will be inferred from
-#'              passed objects if not named
-s <- function( .Data, ...){
+#' These utilities are used internally and not exported.
+#' They are however documented for completness
+#'
+#' @param x,obj An object, any object.
+#' @param ... passed on to other function(s).
+NULL
+
+#' @describeIn aliases Alias for structure, but also adds automatic naming when unnamed,
+#'
+s <- function( x, ...){
     new.attr <- list(...)
     if (is.null(names(new.attr)))
         names(new.attr) <- as.character(substitute(c(...)))[-1]
@@ -13,8 +21,8 @@ s <- function( .Data, ...){
         names(new.attr) <- ifelse(., as.character(substitute(c(...)))[-1], names(new.attr))
 
     for (a in names(new.attr))
-        attr(.Data, a) <- new.attr[[a]]
-    return(.Data)
+        attr(x, a) <- new.attr[[a]]
+    return(x)
 }
 if(FALSE){#@testing
     msg <- "An failure message"
@@ -29,11 +37,10 @@ if(FALSE){#@testing
     expect_identical(names(val), c('a','b'))
 }
 
-#' Equivalent to add_class
+#' @describeIn aliases Specify an additional class for an object, or class when none is set.
 #'
-#' @param x an object, but not an S4 object
-#' @param new the new class to append.
-cl <- function(x, new){s(x, class=c(new, attr(x, 'class')))}
+#' @param new the new class(es) to append.
+cl <- function(x, new){s(x, class=union(new, attr(x, 'class')))}
 if(FALSE){#@testing
     x <- cl(TRUE, 'success')
     expect_is(x, 'success')
@@ -46,6 +53,7 @@ if(FALSE){#@testing
                     , structure('text', class='class'))
 }
 
+#' @describeIn aliases Remove the `dim` attribute.
 undim <- function(x)s(x, dim=NULL)
 if(FALSE){#@testing
     x <- matrix(1:6, 2, 3)
@@ -54,6 +62,7 @@ if(FALSE){#@testing
     expect_identical(undim(x), 1:6)
 }
 
+#' @describeIn aliases Create a named list with names inferred if needed.
 named <- function(...){
     . <- substitute(c(...))
     inferred <- as.character(.)[-1L]
@@ -75,9 +84,14 @@ if(FALSE){#@testing
     expect_identical(val, list(a=a, b=b, c='hello'))
 }
 
-
+#' @describeIn aliases Alias for [tools::toRd.default()]
 clean_Rd <- tools:::toRd.default
-`%||%` <- function (x, y){if (is.null(x)) y else x}
+
+#' @describeIn aliases Alias for attr(x, which) %||% default.
+#' @param which name of the attribute to extract.
+#' @param default the default value to return if not found.
+#' @param exact exact or partial matching?
+#' @seealso [purrr::%||%()]
 get_attr <- function(x, which, default=NULL, exact=TRUE)
     attr(x, which=which, exact=exact) %||% default
 if(FALSE){#@testing
@@ -87,10 +101,11 @@ if(FALSE){#@testing
 }
 
 
-fwd <-
-forward_attributes <- function(value, object){
-    mostattributes(value) <- attributes(object)
-    return(value)
+#' @describeIn aliases Forward attributes from object to value.
+#' @seealso [base::attributes()]
+forward_attributes <- function(x, obj){
+    mostattributes(x) <- attributes(obj)
+    return(x)
 }
 if(FALSE){#@testing
     a <- s( list(Rd_symb("some"))
@@ -111,13 +126,20 @@ if(FALSE){#@testing
                     )
 }
 
-no_attributes <- function(object){
-    mostattributes(object) <- NULL
-    return(object)
+#' @describeIn aliases Alias for `forward_attributes()`.
+fwd <- forward_attributes
+
+
+#' @describeIn aliases Remove most attributes from an object.
+no_attributes <- function(obj){
+    mostattributes(obj) <- NULL
+    return(obj)
 }
 
-no_src <- function(object){s(object, srcref=NULL, wholeSrcref=NULL, srcfile=NULL)}
+#' @describeIn aliases Remove the source references for an object
+no_src <- function(obj){s(obj, srcref=NULL, wholeSrcref=NULL, srcfile=NULL)}
 
+#' @describeIn aliases Check if a string is composed of only whitespace, with [regex][base::grep()] pattern `"^\\s+$"`.
 is_whitespace <- function(x){
     grepl("^\\s+$", x)
 }

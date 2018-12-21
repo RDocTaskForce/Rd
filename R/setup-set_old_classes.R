@@ -10,5 +10,5 @@ setOldClass('bibentry')
 setOldClass('person')
 
 setOldClass(c('Rd', 'list'))
-setOldClass(c('Rd_tag', 'Rd'))
+setOldClass(c('Rd_tag', 'list'))
 

@@ -33,7 +33,7 @@ function( ...
 Rd_code <- function(x){Rd_tag('code', Rd_rcode(x))}
 Rd_concept <- function(name){Rd_tag('concept', Rd_text(name))}
 Rd_concepts <- function(concepts){Rd_lines(lapply(concepts, Rd_concept), 'Rd')}
-Rd_description <- function(...) {Rd_tag("description", content=compact_Rd(Rd(...)))}
+Rd_description <- function(...) {Rd_tag("description", content=Rd(...))}
 Rd_examples <- function(..., content=list(...), opt=NULL) {
     Rd_tag('examples', content=content, opt=opt, wrap.lines=FALSE)
 }
@@ -46,13 +46,13 @@ Rd_keyword <- function(name){Rd_tag('keyword', Rd_text(name))}
 Rd_keywords <- function(keys){Rd(lapply(keys, Rd_keyword))}
 Rd_name <- function(name){Rd_tag('name', Rd_symb(name))}
 Rd_title <- function(title){Rd_tag('title', Rd_text(title))}
-Rd_usage <- function(..., content=compact_Rd(Rd(...))){
+Rd_usage <- function(..., content=Rd(...)){
     val <- Rd_tag('usage', content=content, opt=NULL, wrap.lines = FALSE)
     assert_that(all_are_tag(val, c('RCODE', '\\S3method', '\\S4method')))
     return(val)
 }
 Rd_value <- function(value){Rd_tag('value', content=value)}
-if(FALSE){#@testing Rd_* tags
+if(FALSE){# INACTIVE testing Rd_* tags
     rd <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     txt <- Rd_rm_srcref(rd)
 

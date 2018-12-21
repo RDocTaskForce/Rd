@@ -23,12 +23,15 @@
 #'
 #' @param rd the Rd container object to put in canonical form.
 #' @param .check Perform input checks?
+#' @inheritDotParams is_valid_Rd_object
 #' @export
-Rd_canonize <- function(rd, .check=TRUE, ...){
+Rd_canonize <- function(rd, ..., .check=TRUE){
     if (!isFALSE(.check))
-        assert_that(is_valid_Rd_object(rd))
+        assert_that( is_valid_Rd_object(rd, ...)
+                   , msg = "Rd must be valid before it can be put in cannonical form."
+                   )
     if (is.character(rd))
-        rd <- Rd(rd, .check = .check)
+        rd <- .Rd(rd)
     if (is_exactly(rd, 'list'))
         rd <- cl(rd, 'Rd')
     rd <- Rd_canonize_text(rd)
@@ -44,10 +47,11 @@ if(FALSE){#@testing
     expect_error(Rd_canonize_text(rd))
 
     val <- Rd_canonize_text(Rd(rd))
-    expect_identical(val, .Rd( Rd_text('a\n')
-                             , Rd_text('b\n')
-                             , Rd_text('c\n')
-                             ))
+    expected <- Rd_unclass(.Rd( Rd_text('a\n')
+                              , Rd_text('b\n')
+                              , Rd_text('c\n')
+                              ))
+    expect_identical( Rd_unclass(val), expected)
     expect_identical(Rd_canonize(rd), val)
 
     rd <- Rd_tag( "\\examples"

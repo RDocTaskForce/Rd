@@ -184,6 +184,7 @@ if(FALSE){#@testing
 
 #' @describeIn testing-Rd Check that an object is a valid Rd list,
 #'                        an `Rd_tag` or `Rd`, but not an `Rd_string`
+#' @param deep should contained elements also be checked for validity?
 is_valid_Rd_list <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) || !missing(tags)){
     if (is.character(x)) return(FALSE) else
     valid <- if (is.list(x) && !is.null(attr(x, 'Rd_tag'))){
@@ -247,59 +248,11 @@ if(FALSE){#@testing is_valid_Rd_object against parse_Rd results
 ## Text Testing
 
 Rd_is_all_text <- function(x, label=NULL){
-    label <- label %||% deparse(substitute(x))
-    if(!is_Rd(x) && !is_Rd_tag(x))
-        return(s(FALSE, msg="x is not an Rd container"))
-    is.text <- sapply(x, inherits, .Rd.text.classes)
-    if (all(is.text)) return(TRUE)
-    bad.elements = which(!is.text)
-    msg <- if (length(bad.elements) > 1L) {
-        ._("`%s` has bad elements at positions %s which are not a `TEXT` type for Rd"
-          , label
-          , comma_list(bad.elements)
-          )
-    } else {
-        bad.class <- purrr::map_chr(x[bad.elements], class0)
-        ._("`%s` has a bad element at position %s which is not a `TEXT` type for Rd. It is a %s"
-          , label
-          , comma_list(bad.elements)
-          , dQuote(bad.class)
-          )
-    }
-    return(s(FALSE, msg, bad.elements))
-}
-if(FALSE){#@testing
-    x <- c("Lorem ipsum", stringi::stri_rand_lipsum(3, start_lipsum = FALSE))
-    x <- .Rd_strwrap(collapse(x, '\n\n'), wrap.lines = TRUE, wrap.at = 50)
-    expect_is(x, "Rd")
-    expect_is_not(x, "Rd_TEXT")
-
-    expect_true(Rd_is_all_text(x))
-    expect_identical( Rd_is_all_text(x[[1]])
-                    , s(FALSE, msg="x is not an Rd container")
-                    )
-
-    y <- s(list(x), Rd_tag='\\test', class=c('Rd_tag'))
-
-    expect_false(Rd_is_all_text(y))
-    expect_identical( validate_that(Rd_is_all_text(y))
-                    , "`y` has a bad element at position 1 which is not a `TEXT`" %<<%
-                      "type for Rd. It is a" %<<%
-                      dQuote('Rd')
-                    )
-    y <- s(list( Rd_rcode('some(code)')
-               , s(list(Rd_symb("some"))
-                  , Rd_tag="\\keyword"
-                  , class=c("Rd_tag"))
-               ), class='Rd')
-    expect_identical( validate_that(Rd_is_all_text(y))
-                    , "`y` has bad elements at positions 1 and 2 which are not a `TEXT`" %<<%
-                      "type for Rd"
-                    )
+    .Deprecated('are_Rd_tags')
 }
 
 Rd_spans_multiple_lines <- function(x){
-    grepl('\\n(?!$)', collapse0(as.character(x)), perl=TRUE)
+    grepl('\\n(?!$)', format(x), perl=TRUE)
 }
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
@@ -314,22 +267,19 @@ if(FALSE){#@testing
     expect_true(Rd_spans_multiple_lines(x))
     expect_false(Rd_spans_multiple_lines(unclass(x)))
 
-    x <- c(.Rd.code.newline
-          , Rd_rcode('value \\%if\\% proposition')
-          , .Rd.code.newline)
+    x <- Rd( Rd_rcode('\n')
+           , Rd_rcode('value \\%if\\% proposition')
+           , Rd_rcode('\n'))
     expect_true(Rd_spans_multiple_lines(x))
 }
 
 Rd_ends_with_newline <- function(x, keep.class=FALSE){
-    grepl('\\n$', collapse0(as.character(if (keep.class) x else unclass(x))))
+    if (is(x, 'Rd_tag') && keep.class) x <- .Rd(x)
+    grepl('\\n$', collapse0(as.character(x)))
 }
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_true(Rd_ends_with_newline(txt))
-
-    # ends.with.newline <- purrr::map_lgl(txt, Rd_ends_with_newline)
-    # spans.multiple.lines <- purrr::map_lgl(txt, Rd_spans_multiple_lines)
-    # expect_false(any(ends.with.newline & !spans.multiple.lines))
 
     x <- txt[[38]]
 
@@ -338,7 +288,8 @@ if(FALSE){#@testing
 }
 
 Rd_starts_with_newline <- function(x, keep.class=FALSE){
-    grepl('^\\n', collapse0(as.character(if (keep.class) x else unclass(x))))
+    if (is(x, 'Rd_tag') && keep.class) x <- .Rd(x)
+    grepl('^\\n', collapse0(as.character(x)))
 }
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))

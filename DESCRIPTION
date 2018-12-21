@@ -15,6 +15,7 @@ Imports:
     pkgcond,
     postlogic,
     purrr,
+    rlang,
     testextra,
     tools,
     utils 

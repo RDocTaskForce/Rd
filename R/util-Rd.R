@@ -1,6 +1,9 @@
 ### Rd Utilities #####
+
+
 Rd_rm_srcref <- function(rd){
     attr(rd, 'srcref') <- NULL
+    attr(rd, 'macros') <- NULL
     if (is.list(rd)) for(i in seq_along(rd))
         rd[[i]] <- Recall(rd[[i]])
     return(rd)
@@ -32,11 +35,11 @@ if(FALSE){#@testing cleanup utilities.
 }
 
 Rd_lines <- function(l, ...){
-    assert_that(is.list(l), all_inherit(l, 'Rd'))
-    val <- if (all_are_tag(l, 'RCODE'))
-            Rd_canonize(cl(undim(rbind(l, .Rd.code.newline)), 'Rd'), ...)
+    assert_that(is_valid_Rd_list(l))
+    val <- if (all(are_Rd_strings(l, 'RCODE')))
+            Rd_canonize(cl(undim(rbind(l, .Rd(Rd_rcode("\n")))), 'Rd'), ...)
         else
-            Rd_canonize(cl(undim(rbind(l, .Rd.newline)), 'Rd'), ...)
+            Rd_canonize(cl(undim(rbind(l, .Rd(Rd_text("\n")))), 'Rd'), ...)
     if (tail(val, 1L)=='\n')
         val <- head(val, -1L)
     return(val)
@@ -50,4 +53,23 @@ if(FALSE){#@testing
              , Rd_rcode("proposition \\%otherwise\\% alternate\n"))
     val <- Rd_lines(l)
     expect_identical(val, exp)
+}
+
+
+### Testing Helpers ####
+
+expect_Rd_string <- function(object, tag, info=NULL, label = NULL){
+    act <- testthat::quasi_label(rlang::enquo(object), label)
+    val <- see_if(is_Rd_string(object, tag, strict=TRUE, reason = TRUE))
+    expect(val, act$label %<<% attr(val, 'msg'), info)
+}
+expect_Rd_tag <- function(object, tag, info=NULL, label = NULL){
+    act <- testthat::quasi_label(rlang::enquo(object), label)
+    val <- see_if(is_Rd_tag(object, tag, strict=TRUE, reason = TRUE))
+    expect(val, act$label %<<% attr(val, 'msg'), info)
+}
+expect_Rd_bare <- function(object, info=NULL, label = NULL){
+    act <- testthat::quasi_label(rlang::enquo(object), label)
+    val <- see_if(is_Rd(object, strict=TRUE))
+    expect(val, act$label %<<% attr(val, 'msg'), info)
 }

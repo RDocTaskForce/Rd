@@ -21,7 +21,7 @@ function(obj, ...){
                     ))
 })
 toRd@valueClass <- 'Rd'
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     val <- toRd('character')
     expect_identical(val, Rd("character"))
 
@@ -41,7 +41,7 @@ if(FALSE){#@testing
                     , Rd(Rd_text("Andrew Redd \\email{andrew.redd@hsc.utah.edu} and Drew Blue"))
                     )
 }
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     toRd.test_class <- function(obj, ...)obj
     expect_error( toRd(cl(1L, 'test_class'))
                 , class = "Rd-error")
@@ -133,13 +133,13 @@ function( x   #< Rd object.
         indents[[1]] <- Rd()
     val <- rbind(indents, parts)
     val <- purrr::compact(undim(val))
-    val <- compact_Rd(cl(val, 'Rd'))
+    val <- cl(val, 'Rd')
     val <- forward_attributes(val, x)
     val <- Rd_canonize_text(val)
     val <- Rd_canonize_code(val)
     return(val)
 }
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     x <- .Rd_strwrap( collapse(stringi::stri_rand_lipsum(3), '\n\n')
                     , wrap.lines = TRUE, wrap.at = 72)
     expect_is(x, 'Rd')
@@ -224,7 +224,7 @@ if(FALSE){# deprecated testing .Rd_indent specification by options
                       )
     })
 }
-if(FALSE){#@testing indenting first lines
+if(FALSE){# testing INACTIVE indenting first lines
     expect_error(.Rd_indent(c('test strings')))
 
     x <- Rd_usage( .Rd.code.newline
@@ -282,7 +282,7 @@ function( x
                 , class = 'Rd'
                 ))
     } else
-    if (is.list(x) && Rd_is_all_text(x)) {
+    if (is.list(x) && are_Rd_strings(x, 'TEXT')) {
         lines <- base::strwrap( collapse0(unlist(x))
                               , width=wrap.at
                               , simplify = TRUE)
@@ -311,7 +311,7 @@ function( x
         return(x)
     }
 }
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     x <- stringi::stri_rand_lipsum(1)
 
     expect_identical(.Rd_strwrap(x, wrap.lines=FALSE, wrap.at=72L)
@@ -337,7 +337,7 @@ if(FALSE){# deprecated testing .Rd_strwrap specification by options
                         )
     })
 }
-if(FALSE){#@testing .Rd_strwrap preservation of line breaks.
+if(FALSE){# testing INACTIVE .Rd_strwrap preservation of line breaks.
     x <- c("Lorem ipsum", stringi::stri_rand_lipsum(3, start_lipsum = FALSE))
     x <- Rd_text(collapse(x, '\n\n'))
 
@@ -355,24 +355,23 @@ if(FALSE){#@testing .Rd_strwrap preservation of line breaks.
 
 # S3 Methods ----------------------------------------------------------
 
-if (FALSE){#@testing toRd,character
+if (FALSE){# testing INACTIVE toRd,character
     expect_identical( toRd(c("\\hello\n", "%world"))
                     , Rd(Rd_text("\\\\hello\n"), Rd_text("\\%world")))
 }
 
 toRd.NULL <- function(obj, ...){Rd()}
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     expect_identical(toRd(NULL), Rd())
 }
 
 #' @export
 toRd.list <- function(obj, ...){
     val <- lapply(obj, toRd, ...)
-    val <- compact_Rd(val)
-    assert_that( all_inherit(val, 'Rd'))
+    assert_that( is_valid_Rd_list(val))
     cl(val, 'Rd')
 }
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     l <- list('\\hello ', '%world')
     expect_identical( toRd(l)
                     , s( list( Rd_text("\\\\hello ")
@@ -401,7 +400,7 @@ toRd.Rd <- function(obj, ...){
                )
     obj
 }
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     obj <- Rd("test")
     expect_identical(toRd(obj), obj)
     expect_error(toRd(cl(TRUE, 'Rd')))
@@ -422,7 +421,7 @@ function( obj
                      , braces  = list(email = c('\\email{', '}'))
                      ))
 }
-if (FALSE) {#@testing toRd,author
+if (FALSE) {# testing toRd,author
     obj <- list(author = c( person('Andrew', 'Redd'
                                   , email='andrew.redd@hsc.utah.edu')
                           , person('Drew'  , 'Blue')
@@ -436,7 +435,7 @@ if (FALSE) {#@testing toRd,author
                     , "Andrew Redd \\email{andrew.redd@hsc.utah.edu} and Drew Blue"
                     )
 }
-if (FALSE) {#! @testing
+if (FALSE) {# testing INACTIVE
     object <-c( person('First' , 'Author', email='me1@email.com')
               , person('Second', 'Author', email='me2@email.com')
               )
@@ -462,7 +461,7 @@ if (FALSE) {#! @testing
 }
 
 toRd.name <- function(obj, ...)Rd_text(as.character(obj), 'VERB')
-if(FALSE){#@testing
+if(FALSE){# testing INACTIVE
     obj <- as.name('test.name')
     val <- toRd(obj)
     expect_is(val[[1]], 'Rd_VERB')

@@ -1,19 +1,17 @@
 ### Construction Functions #####
 
 #' Split a rd object into relevant lines.
+#'
+#' @param rd an rd list.
 Rd_split <-
-function(x){
-
-    assert_that(is(x, 'Rd'))
-    has.newline <- purrr::map_lgl(x, Rd_ends_with_newline)
+function(rd){
+    assert_that(is_valid_Rd_list(rd))
+    has.newline <- purrr::map_lgl(rd, Rd_ends_with_newline)
     group <- rev(cumsum(rev(has.newline)))
     group <- max(group)-group
 
-    parts <- unname(split(x, group))
-    parts <- lapply(parts, function(x)
-        if (is.list(x) && length(x) == 1L) x[[1]] else x
-    )
-    parts
+    parts <-unname(split(Rd_untag(rd), group))
+    s(fwd(parts, unclass(rd)), split = TRUE)
 }
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
@@ -23,69 +21,41 @@ if(FALSE){#@testing
     expect_is_not(val, 'Rd')
 
     expect_all_inherit(val, 'Rd')
-    expect_false(all_are_exactly(val, 'Rd'))
-
+    expect_true(all_are_exactly(val, 'Rd'))
 
     x <- txt['\\examples'][[1]]
     y <- Rd_split(x)
-    expect_identical(y[[1]], x[[1]])
+    expect_is_not(y, 'Rd_tag')
+    expect_is_not(y, 'Rd')
+    expect_equal(get_Rd_tag(y), "\\examples")
+    expect_true(attr(y, "split"))
+
+    expect_is_exactly(y[[1]], 'Rd')
+    expect_identical(y[[1]][[1]], x[[1]])
     expect_length(y, 29L)
-}
 
-compact_Rd <- function(l, recurse=FALSE){
-    .Deprecated(msg = "compact_Rd is deprecated.")
-    assert_that( is(l, 'Rd')
-              || ( (is.null(attr(l, 'class')) && mode(l) == 'list')
-                  && all_inherit(l, c('Rd', 'NULL')))
-              )
-    i <- 1L
-    while (i <= length(l)) {
-        if (is_exactly(l[[i]], 'Rd')) {
-            if (length(l[[i]]) == 1L)
-                l[[i]] <- l[[i]][[1]]
-            else
-                l <- forward_attributes(append(l, l[[i]], after=i)[-i], l)
-        } else if(recurse && is.list(l[[i]])) {
-            l[[i]] <- Recall(l[[i]])
-            i <- i+1L
-        } else {
-            i <- i+1L
-        }
-    }
-    return(l)
-}
-if(FALSE){#@testing
-    l <- s(list( .Rd.newline
-               , Rd_text('text')
-               , .Rd.newline
-               , s(list(s(list(Rd_symb('symb')), Rd_tag='tag'
-                         , class=c('Rd_tag', 'Rd'))
-                       , .Rd.newline
-                       ), class='Rd')
-               ), class='Rd')
-    m <-  compact_Rd(l, recurse=TRUE)
-
-    expect_length(l, 4L)
-    expect_length(m, 5L)
-
-    expect_is(m, 'Rd')
-    expect_is(m[[1L]], 'Rd_newline')
-    expect_is(m[[2L]], 'Rd_TEXT')
-    expect_is(m[[3L]], 'Rd_newline')
-    expect_is(m[[4L]], 'Rd_tag')
-    expect_is(m[[5L]], 'Rd_newline')
+    expect_equal( fwd(unlist(y, recursive = FALSE), x), x)
 }
 
 check_content <- function(content, .check=NA, label= NULL){
     label = label %||% deparse(substitute(content))
-    # if (isFALSE(.check)) {
-    # } else
+    if (isFALSE(.check)) {
+        return(content)
+    } else
     if (is.na(.check)) {
         untagged.text <- are(content, 'character')
         if (any(untagged.text)) {
             n <- sum(untagged.text)
-            for (i in which(untagged.text))
+            for (i in which(untagged.text)){
+                if (length(content[[i]]) > 1L) {
+                    pkg_warning(._("Strings are expected." %<<%
+                                   "Collapsing character vector to string" %<<%
+                                   "at position %d.", i)
+                               , type="collapsing_character_vector" )
+                    content[[i]] <- collapse0(content[[i]])
+                }
                 content[[i]] <- Rd_text(content[[i]])
+            }
             pkg_message(if(n == 1) ._("There was 1 character string at position %d" %<<%
                                       "of %s that was converted to" %<<%
                                       "an Rd_string/TEXT.", which(untagged.text), label)
@@ -123,27 +93,28 @@ check_content <- function(content, .check=NA, label= NULL){
                    , is_valid_Rd_object(content, strict=NA, deep=TRUE)
                    )
     }
-    return(content)
+    return(Rd_canonize(content, .check=FALSE))
 }
 check_content <- skip_scope(check_content)
 test_check_content <- function(..., content=list(...), .check=NA){
     check_content(content=content, .check=.check)
 }
 if(FALSE){#@testing check_content(., .check=NA)
-    expect_identical(test_check_content(content=list()), list())
+    expect_identical(test_check_content(content=list()), .Rd())
     expect_message( val <- test_check_content("string")
                   , class = "Rd::test_check_content-message-class inference")
     expect_message( val <- test_check_content("string")
                   , regexp = "There was 1 character string at position 1" %<<%
                              "of content that was converted to an Rd_string/TEXT\\.")
-    expect_identical(val, c(list(Rd_text('string'))))
+    expect_identical(val, .Rd(Rd_text('string')))
 
     expect_message( val <- test_check_content("hello", "world")
                   , regexp = "There were 2 character strings in content" %<<%
                              "that were converted to Rd_string/TEXT\\.")
 
-    expect_error( val <- test_check_content(c("hello", "world"))
-                , "content is not a string \\(a length one character vector\\)\\.")
+    expect_warning( suppress_messages( val <- test_check_content(c("hello", "world"))
+                                     , class = "message-class inference")
+                  , class = "Rd::test_check_content-warning-collapsing_character_vector")
 
     expect_message( val <- test_check_content(Rd_text("hello"), list(Rd_text("world")))
                   , "There was 1 list at position 2 of content that was converted to an Rd\\."
@@ -153,7 +124,7 @@ if(FALSE){#@testing check_content(., .check=NA)
                                              )
                   , "There were 2 lists in content that were converted to Rd objects\\."
                   )
-    expect_identical(val, list( .Rd(Rd_text("hello"))
+    expect_identical(val, .Rd( .Rd(Rd_text("hello"))
                               , Rd_tag("\\code", Rd_rcode("world"))
                               ))
 
@@ -162,7 +133,7 @@ if(FALSE){#@testing check_content(., .check=FALSE)
     expect_identical(test_check_content(content=iris, .check=FALSE), iris)
 }
 if(FALSE){#@testing check_content(., .check=TRUE)
-    expect_identical(test_check_content(content=list(), .check=TRUE), list())
+    expect_identical(test_check_content(content=list(), .check=TRUE), .Rd())
     expect_error( test_check_content("string", .check=TRUE)
                 , "Elements 1 of elements.are.valid are not true")
     expect_error( test_check_content("string", .check=TRUE)
@@ -180,110 +151,6 @@ if(FALSE){#@testing check_content(., .check=TRUE)
                                     , .check=TRUE)
                 , "Elements 1, 2 of elements.are.valid are not true")
 }
-
-
-.Rd <- function(...)s(list(...), class='Rd')
-
-
-#' Construct an Rd container
-#'
-#' An Rd container is a list which contains other Rd objects.
-#'
-#' @param ...,content Content specified in individual or list form.
-#'                    Either may be used but only one.
-#'                    All elements should be unnamed.
-#' @param .check Should the content be checked for valid Rd and if options are valid?
-#'               A value of FALSE indicates no checking,
-#'               TRUE strict checking and
-#'               NA convert where possible, with messages and warnings.
-#' @export
-#' @family construction
-Rd <-
-function(..., content = list(...), .check=NA){
-    assert_that(missing(content) || ...length() == 0L)
-    #' @details
-    #' An empty Rd vector can be created with a `Rd()` call.
-    if (length(content) == 0L) return(invisible(cl(list(), 'Rd'))) else
-    #' A call to Rd with only one argument will not create a double nested list,
-    #' but will encapsulate tags and strings.  For example,
-    #' calling `Rd(Rd('test'))` has the same effect as `Rd('test')`
-    #'
-    if (...length() == 1L) {
-        if (is_exactly(..1, 'Rd')) return(..1)
-        if (is_exactly(..1, 'character')) {
-            #' A character vector may be passed to Rd where it is
-            #' converted to a list of Rd strings before being
-            #' encapsulated in an `Rd` container.
-            return(s( lapply(..1, Rd_text), class= 'Rd'))
-        }
-    }
-    content <- check_content(content, .check=.check)
-    cl(content, 'Rd')
-}
-if(FALSE){#@testing
-    a <- "test"
-    expect_message( b <- Rd(a)
-                  , "There was 1 character string at position 1" %<<%
-                    "of content that was converted to an Rd_string/TEXT." )
-    expect_is_exactly(b, 'Rd')
-    expect_true(is_Rd_string(b[[1]], 'TEXT'))
-
-    # a <- stringi::stri_rand_lipsum(3)
-    # b <- Rd(collapse(a, '\n\n'), wrap.lines=TRUE)
-    # expect_is_exactly(b, 'Rd')
-    # expect_identical(mode(b), 'list')
-    # expect_true(length(b) > 5)
-
-    c <- Rd(a, wrap.lines=FALSE)
-    expect_is_exactly(c, 'Rd')
-    d <- Rd(c, wrap.lines=TRUE)
-    expect_is_exactly(d, 'Rd')
-    expect_identical(c, d)
-
-    expect_error(Rd(NULL))
-
-    expect_is(Rd(), 'Rd')
-    expect_length(Rd(), 0L)
-
-    x <- Rd(collapse(stringi::stri_rand_lipsum(3), '\n\n'), wrap.lines=TRUE)
-    expect_is_exactly(x, 'Rd')
-    expect_is_exactly(x[[1L]], 'Rd_TEXT')
-    expect_true(all_inherit(x, c('Rd_TEXT', 'Rd_newline')))
-
-    x <- Rd(Rd_text('text'))
-    expect_is_exactly(x, 'Rd')
-    expect_is_exactly(x[[1]], 'Rd_TEXT')
-
-    x <- Rd("Multiple ", "Character strings", " to convert")
-    expect_is_exactly(x, 'Rd')
-    expect_all_inherit(x, "Rd_TEXT")
-    expect_true(all_are_tag(x, 'TEXT'))
-}
-if(FALSE){#@testing Class-Rd
-    x <- cl('text', 'Rd')
-    expect_is(x, 'Rd')
-
-    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
-    expect_is(txt, 'Rd')
-    expect_true(validObject(txt))
-}
-
-setValidity('Rd', function(object){
-    if (identical(class(object), 'Rd'))
-        validate_that( is.list(object)
-                     , is.null(attr(object, 'Rd_tag'))
-                     , all_inherit(object, c( 'list', 'character'
-                                            , 'Rd', 'Rd_tag'))
-                     )
-    else
-        validate_that( is.list(object) || is.character(object) )
-})
-setValidity('Rd_tag', function(object){
-    validate_that( is.list(object) || is.character(object)
-                 , !is.null(tag <- attr(object, 'Rd_tag'))
-                 , grepl('^\\\\', tag) || tag %in% .Rd.text.classes
-                 )
-})
 
 
 # String Construction -----------------------------------------------------------------
@@ -353,20 +220,24 @@ if(FALSE){ #@testing
 
 #' @describeIn Rd_string Type as R symbol or 'verb'.
 #' @export
-Rd_symb <- function(content){
+Rd_verb <- function(content){
     Rd_string(content, type='VERB')
 }
+#' @describeIn Rd_string Type as R symbol or 'verb'.
+#' @export
+Rd_symb <- Rd_verb
 if(FALSE){ #@testing
     val <- Rd_symb('name')
     expect_identical(val, s('name', Rd_tag='VERB', class='Rd_string'))
 }
+
 
 #' @describeIn Rd_string type as Rd comment. Comments must start with the comment character '%'.
 #' @export
 Rd_comment <- function(content){
     assert_that( grepl(pattern='^%', content)
                , msg = "Ill-formed comment")
-    assert_that( grepl(pattern='\\n', content)
+    assert_that(!grepl(pattern='\n', content, fixed = TRUE)
                , msg = "comments cannot contain newlines.")
     Rd_string(content, type='COMMENT')
 }
@@ -374,6 +245,99 @@ if(FALSE){#@testing Rd_rcode, Rd_symb, and Rd_comment
     expect_error(Rd_comment("testing"), "Ill-formed comment", class = "Rd-error-assertion failure")
     expect_true(is_Rd_string(Rd_comment("% comment"), "COMMENT", strict = TRUE))
 }
+
+# List Constructions ---------------------------------------------------------------
+
+# Rd Container =====================================================================
+
+.Rd <- function(...)s(list(...), class='Rd')
+
+
+#' Construct an Rd container
+#'
+#' An Rd container is a list which contains other Rd objects.
+#'
+#' @param ...,content Content specified in individual or list form.
+#'                    Either may be used but only one.
+#'                    All elements should be unnamed.
+#' @param .check Should the content be checked for valid Rd and if options are valid?
+#'               A value of FALSE indicates no checking,
+#'               TRUE strict checking and
+#'               NA convert where possible, with messages and warnings.
+#' @export
+#' @family construction
+Rd <-
+function(..., content = list(...), .check=NA){
+    assert_that(missing(content) || ...length() == 0L)
+    #' @details
+    #' An empty Rd vector can be created with a `Rd()` call.
+    if (length(content) == 0L) return(invisible(cl(list(), 'Rd'))) else
+    #' A call to Rd with only one argument will not create a double nested list,
+    #' but will encapsulate tags and strings.  For example,
+    #' calling `Rd(Rd('test'))` has the same effect as `Rd('test')`
+    #'
+    if (...length() == 1L && is_exactly(..1, 'Rd'))
+        return(Rd_canonize(..1))
+    #' A character vector may be passed to Rd where it is
+    #' collapsed  and normalized to a `Rd` container of Rd string.
+    #'
+    #' @return Will allways return valid Rd in canonical form.
+    content <- check_content(content, .check=.check)
+    cl(content, 'Rd')
+}
+if(FALSE){#@testing
+    a <- "test"
+    expect_message( b <- Rd(a)
+                  , "There was 1 character string at position 1" %<<%
+                    "of content that was converted to an Rd_string/TEXT." )
+    expect_is_exactly(b, 'Rd')
+    expect_true(is_Rd_string(b[[1]], 'TEXT'))
+
+    # a <- stringi::stri_rand_lipsum(3)
+    # b <- Rd(collapse(a, '\n\n'), wrap.lines=TRUE)
+    # expect_is_exactly(b, 'Rd')
+    # expect_identical(mode(b), 'list')
+    # expect_true(length(b) > 5)
+
+    c <- Rd(Rd_text(a))
+    expect_is_exactly(c, 'Rd')
+    d <- Rd(c)
+    expect_is_exactly(d, 'Rd')
+    expect_identical(c, d)
+
+    expect_error(Rd(NULL))
+
+    expect_is(Rd(), 'Rd')
+    expect_length(Rd(), 0L)
+
+    expect_message(x <- Rd(collapse(stringi::stri_rand_lipsum(3), '\n\n')))
+    expect_Rd_bare(x)
+    expect_Rd_string(x[[1L]], 'TEXT')
+    expect_true(all(are_Rd_strings(x, 'TEXT')))
+
+    x <- Rd(Rd_text('text'))
+    expect_Rd_bare(x)
+    expect_Rd_string(x[[1]], 'TEXT')
+
+    x <- Rd("Multiple ", "Character strings", " to convert")
+    expect_Rd_bare(x)
+    expect_Rd_string(x[[1]], "TEXT")
+    expect_length(x, 1)
+    expect_true(all(are_Rd_strings(x, 'TEXT')))
+}
+setValidity('Rd', function(object){
+    validate_that( is.list(object)
+                 , is.null(attr(object, 'Rd_tag'))
+                 , is_valid_Rd_list(object, strict = TRUE, deep=TRUE)
+                 )
+})
+if(FALSE){#@testing Class-Rd
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
+    expect_is(txt, 'Rd')
+    expect_true(is_valid_Rd_object(txt))
+    expect_true(validObject(txt, TRUE, complete = FALSE))
+}
+
 
 
 # Tag Construction ----------------------------------------------------------------------------------
@@ -389,8 +353,8 @@ if(FALSE){#@testing Rd_rcode, Rd_symb, and Rd_comment
 #' @param opt Options for the tag which as placed in square brackets.
 #' @param indent Should content inside the tag be indented?
 #' @param indent.with  Amount to indent with, defaults to four spaces.
-#' @param wrap.lines Should lines of content inside the tag be wrapped for nicer formatting?
-#' @param wrap.at The number of characters to wrap at, defaults to 72.
+# @param wrap.lines Should lines of content inside the tag be wrapped for nicer formatting?
+# @param wrap.at The number of characters to wrap at, defaults to 72.
 #' @param .check Should the content be checked for valid Rd and if options are valid?
 #'               A value of FALSE indicates no checking,
 #'               TRUE strict checking and
@@ -422,7 +386,7 @@ function( tag
     }
     content <- check_content(content, .check=.check)
     if (length(opt))
-        opt <- check_content(opt, .check=.check)
+        assert_that(is_valid_Rd_object(opt))
     if (Rd_spans_multiple_lines(content)) {
         if (!Rd_starts_with_newline(content)) content <- c(.Rd.newline, content)
         if (!Rd_ends_with_newline(content)) content <- c(content, .Rd.newline)
@@ -457,22 +421,38 @@ if(FALSE){#@testing
     x <- Rd_tag('\\item', Rd(Rd_text('arg')), Rd(Rd_text("an agrument")))
     expect_length(x, 2L)
 
-    expect_equal( as.character(x <- Rd_tag('name', Rd_text(c('line1', 'line2'))))
-                , c('\\name', '{', 'line1', 'line2', '}')
-                )
+    val <- Rd_tag('\\link', Rd_text('dest'), opt=Rd_text('pkg'))
+    expect_Rd_string(attr(val, 'Rd_option'), 'TEXT')
 
-    val <- Rd_tag('link', Rd_text('dest'), opt=Rd_text('pkg'))
-    expect_is(val, 'Rd')
-    expect_identical(collapse0(as.character(val)), "\\link[pkg]{dest}")
+    expect_is(val, 'Rd_tag')
+    expect_identical(format(val), "\\link[pkg]{dest}")
 
-
-    content <- Rd_canonize(Rd(collapse(stringi::stri_rand_lipsum(3), '\n\n')))
-    tag <- Rd_tag( 'description', content=content
-                 , wrap.lines = TRUE, wrap.at = 72
-                 , indent=TRUE, indent.with = ' '
+    # Error in .Rd_indent
+    # lines <- strwrap( collapse(stringi::stri_rand_lipsum(3), '\n\n'), width = 72)
+    # content <- Rd(Rd_text(collapse(lines, '\n')))
+    # expect_true(length(content)>5)
+    #
+    # tag <- Rd_tag( '\\description', content=content
+    #              , indent=TRUE, indent.with = ' '
+    #              )
+    # expect_true(is_Rd_tag(tag, '\\description'))
+    # expect_true(length(tag) > 5L)
+    # expect_equal(substr(tag[[2]], 1, 13)[[1]], '  Lorem ipsum')
+}
+setValidity('Rd_tag', function(object){
+    validate_that( is.list(object) || is.character(object)
+                 , !is.null(tag <- attr(object, 'Rd_tag'))
+                 , grepl('^\\\\', tag)
+                 , is_valid_Rd_list(object, strict = TRUE, deep=TRUE)
                  )
-    expect_true(is_Rd_tag(tag, '\\description'))
-    expect_true(length(tag) > 5L)
-    expect_equal(substr(tag[[2]], 1, 13)[[1]], '  Lorem ipsum')
+})
+if(FALSE){#@testing validObject(Rd_tag)
+    txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
+    expect_is(txt, 'Rd')
+
+    desc <- txt[['\\description']]
+    expect_Rd_tag(desc, '\\description')
+    expect_true(is_valid_Rd_object(desc))
+    expect_true(validObject(desc, TRUE))
 }
 
