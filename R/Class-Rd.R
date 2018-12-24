@@ -132,6 +132,7 @@ if(FALSE){#@testing
     expect_identical( is_Rd_tag(x, strict=FALSE, tag = c("\\details", "\\usage"))
                     , s(FALSE, msg="'Rd_tag' attribute is not in allowed tags"))
 }
+
 #' @describeIn testing-Rd Explicitly vectorized version of is_Rd_tag
 #' @export
 are_Rd_tags <- function(x, tags=NULL, strict=FALSE){
@@ -153,6 +154,7 @@ if(FALSE){#@testing
                     , c(FALSE, TRUE, FALSE, FALSE)
                     )
 }
+
 #' @describeIn testing-Rd check if a list is an Rd container object.
 #'
 is_Rd <- function(x, strict=FALSE){
@@ -231,19 +233,23 @@ if(FALSE){#@testing is_valid_Rd_object against parse_Rd results
     expect_true(is_valid_Rd_object(txt, strict=FALSE, deep=TRUE))
 }
 
-
-# is_Rd_newline <- function(x, ...){
-#     is_Rd_string(x, ...) && x == '\n'
-# }
-# if(FALSE){#@testing
-#     expect_true(is_Rd_newline(.Rd.newline))
-#     expect_true(is_Rd_newline(.Rd.newline[[1]]))
-#     expect_false(is_Rd_newline(.Rd.newline[[1]][[1]]))
-#     expect_true(is_Rd_newline(.Rd.code.newline))
-#     expect_true(is_Rd_newline(.Rd.code.newline[[1]]))
-#     expect_true(is_Rd_newline(.Rd.code.newline[[1]]))
-#     expect_false(is_Rd_newline(.Rd(.Rd.newline)))
-# }
+#' Check if an element is a newline
+is_Rd_newline <- function(x, ...){
+    if (is(x, c('Rd')) && length(x)==1) x <- x[[1]]
+    see_if( is_Rd_string(x, c('TEXT', 'RCODE'))
+          , x == '\n'
+          )
+}
+if(FALSE){#@testing
+    expect_true(is_Rd_newline(.Rd.newline))
+    expect_true(is_Rd_newline(.Rd.newline[[1]]))
+    expect_false(is_Rd_newline(.Rd.newline[[1]][[1]]))
+    expect_true(is_Rd_newline(.Rd.code.newline))
+    expect_true(is_Rd_newline(.Rd.code.newline[[1]]))
+    expect_true(is_Rd_newline(.Rd.code.newline[[1]]))
+    expect_false(is_Rd_newline(.Rd(.Rd.newline)))
+    expect_false(is_Rd_newline(Rd_verb('\n')))
+}
 
 ## Text Testing
 

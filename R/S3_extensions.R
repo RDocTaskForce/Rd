@@ -214,82 +214,48 @@ if(FALSE){#@testing `[.Rd` and `[.Rd_tag`
     expect_equal(args[  integer(0)], Rd_tag("\\arguments"))
 }
 
-# @export
-# c.Rd  <- function(...){
-#     # l <- list(...)
-#     # tags <- lapply(l, get_Rd_tag)
-#     # is.text <- sapply(l, is.character))
-#     # if (all(is.text)){
-#     #     if(tags <- )
-#     #
-#     # }
-#
-#
-#     if (is.list(..1))
-#         return(fwd(NextMethod(), ..1))
-#     else
-#         cl(NextMethod(), 'Rd')
-#     # l <- list(...)
-#     # is.rd <- sapply(l, is_Rd, strict=FALSE, deep=FALSE)
-#     # assert_that(all(is.rd))
-#     # lengths <- purrr::map_int(l, length)
-#     # val <- vector('list', sum(ifelse(is.rd, lengths, 1L)))
-#     # j <- 1L
-#     # for (i in seq_along(l))
-#     #     if (is.list(l[[i]]) && !is_Rd_tag(l[[i]])) {
-#     #         val[seq(j, j+lengths[[i]]-1L)] <- l[[i]]
-#     #         j <- j + lengths[[i]]
-#     #     } else {
-#     #         val[j] <- l[i]
-#     #         j <- j + 1L
-#     #     }
-#     # return(s(val, class='Rd'))
-# }
-# if(FALSE){#@testing
-#     x <- Rd_text('testing')
-#     l <- list(.Rd.newline[[1]], x, .Rd.newline[[1]])
-#     y <- c(.Rd.newline, x, .Rd.newline)
-#     expect_equal(l, unclass(y))
-#
-#     a <- Rd_text('hello')
-#     b <- Rd_text(' ')
-#     c <- Rd_text('world')
-#     x <- s(list(a, b, c), class='Rd')
-#     lst <- c(.Rd.newline, x, .Rd.newline)
-#     expect_is(lst, 'Rd')
-#     expect_length(lst, 5)
-#     expect_is(lst[[1]], 'Rd_newline')
-#     expect_is(lst[[2]], 'Rd_TEXT')
-#     expect_is(lst[[4]], 'Rd_TEXT')
-#     expect_is(lst[[5]], 'Rd_newline')
-#
-#     content <- c(.Rd.code.newline
-#                 , Rd_rcode("require(graphics)\n")
-#                 , .Rd.code.newline
-#                 , Rd_rcode("dnorm(0) == 1/sqrt(2*pi)\n")
-#                 , Rd_rcode("dnorm(1) == exp(-1/2)/sqrt(2*pi)\n")
-#                 , Rd_rcode("dnorm(1) == 1/sqrt(2*pi*exp(1))\n")
-#                 )
-#     expect_is_exactly(content, 'Rd')
-#     expect_length(content, 6L)
-#
-#     expect_is_exactly(unclass(content)[[1]],'Rd_newline')
-#     expect_is_exactly(unclass(content)[[3]],'Rd_newline')
-#
-#     expect_is_exactly(unclass(content)[[2]],'Rd_RCODE')
-#     expect_is_exactly(unclass(content)[[4]],'Rd_RCODE')
-#     expect_is_exactly(unclass(content)[[5]],'Rd_RCODE')
-#     expect_is_exactly(unclass(content)[[6]],'Rd_RCODE')
-# }
-# if(FALSE){#@testing
-#     x <- c( Rd_usage(Rd_rcode("summary(object, \\dots)"))
-#           , list( s("summary(", Rd_tag = "RCODE"))
-#           , list( s("object, ", Rd_tag = "RCODE"))
-#           , Rd_usage(Rd_rcode("\\dots, digits)"))
-#           )
-#     is_Rd_tag(x, '\\usage')
-#
-# }
+#' @export
+c.Rd  <- function(...){
+    l <- list(...)
+    needs.wrap <- sapply(l, Negate(is), 'Rd')
+    l[needs.wrap] <- lapply(l[needs.wrap], list)
+    return(fwd(unlist(l, recursive = FALSE), ..1))
+}
+#' @export
+c.Rd_tag <- c.Rd
+if(FALSE){#@testing c.Rd & c.Rd_tag
+    expect_true('c.Rd' %in% as.character(methods('c')))
+    x <- .Rd(Rd_text('testing'))
+
+    expect_identical( c(Rd(Rd_text('  ')), Rd_alias('name'))
+                    , Rd(Rd_text('  '), Rd_alias('name'))
+                    )
+    expect_identical( c(Rd(Rd_text('  ')), 'name')
+                    , .Rd(Rd_text('  '), 'name')
+                    )
+    expect_identical( c(Rd(Rd_text('  ')), Rd_alias('name'), Rd_text('\n'))
+                    , .Rd(Rd_text('  '), Rd_alias('name'), Rd_text('\n'))
+                    )
+    expect_identical( c(Rd(Rd_text('  ')), Rd_text('name'), Rd_text('\n'))
+                    , .Rd(Rd_text('  '), Rd_text('name'), Rd_text('\n'))
+                    )
+}
+
+#'@export
+c.Rd_string <- function(...){
+    l <- list(...)
+    if( all(sapply(l, is.character))
+     && all(unlist(sapply(l, get_Rd_tag)) %in% get_Rd_tag(..1))
+      ) fwd(collapse0(l), ..1)
+    else NextMethod()
+}
+if(FALSE){#@testing
+    expect_true('c.Rd_string' %in% as.character(methods('c')))
+    expect_identical(c(Rd_text("hello"), ' ', Rd_text("world"))
+                    , Rd_text("hello world"))
+    expect_identical(c(Rd_text("hello"), ' ', Rd_rcode("world"))
+                    , c("hello", ' ', "world"))
+}
 
 #' @export
 format.Rd <- function(x, ...)collapse0(as.character(x, ...))

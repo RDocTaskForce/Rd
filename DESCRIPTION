@@ -38,4 +38,5 @@ Collate:
     'construction.R'
     'convenience.R'
     'globals.R'
+    'indent.R'
     'util-Rd.R'

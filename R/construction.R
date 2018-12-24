@@ -344,8 +344,8 @@ if(FALSE){#@testing Class-Rd
 
 #' Create an Rd tag container
 #'
-#' Rd_tag containers can contain, [strings][Rd_string], [Rd containers][Rd]
-#' and other tags.
+#' Rd_tag containers can contain, [strings][Rd_string()],
+#' [Rd containers][Rd()] and other tags.
 #'
 #' @param tag     The Rd/LaTeX tag to use.  Must start with the backslash.
 #' @param ...,content The content specified in individual form or list form.
@@ -364,13 +364,13 @@ function( tag
         , ...
         , content = list(...)
         , opt = NULL
-        , indent         = getOption("Rd::indent", FALSE)
-        , indent.with    = getOption("Rd::indent.with", "    ")
+        , indent         = getOption("Rd::indent")
+        , indent.with    = getOption("Rd::indent.with")
         , .check = NA
         ){
     assert_that( is.flag(.check)
                , is.string(tag)
-               , is.flag(indent), is.string(indent.with)
+               , is.flag(indent)
                , missing(content) || ...length() == 0L
                )
     if (!grepl("^\\\\", tag)) {
@@ -391,7 +391,7 @@ function( tag
         if (!Rd_starts_with_newline(content)) content <- c(.Rd.newline, content)
         if (!Rd_ends_with_newline(content)) content <- c(content, .Rd.newline)
         if (indent)
-            content <- .Rd_indent(content, indent=indent, indent.with = indent.with)
+            content <- Rd_indent(content, indent.with = indent.with)
     }
     return(s( content
             , Rd_tag = tag
