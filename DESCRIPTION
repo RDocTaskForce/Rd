@@ -41,3 +41,5 @@ Collate:
     'indent.R'
     'keyword.db.R'
     'util-Rd.R'
+URL: https://github.com/RDocTaskForce/Rd
+BugReports: https://github.com/RDocTaskForce/Rd/issues
