@@ -215,28 +215,25 @@ if(FALSE){#@testing `[.Rd` and `[.Rd_tag`
 }
 
 #' @export
-c.Rd  <- function(...){
+Rd_c  <- function(...){
     l <- list(...)
     needs.wrap <- sapply(l, Negate(is), 'Rd')
-    l[needs.wrap] <- lapply(l[needs.wrap], list)
-    return(fwd(unlist(l, recursive = FALSE), ..1))
+    l[needs.wrap] <- lapply(l[needs.wrap], .Rd)
+    return(fwd(unlist(l, recursive = FALSE), l[[1]]))
 }
-#' @export
-c.Rd_tag <- c.Rd
-if(FALSE){#@testing c.Rd & c.Rd_tag
-    expect_true('c.Rd' %in% as.character(methods('c')))
+if(FALSE){#@testing
     x <- .Rd(Rd_text('testing'))
 
-    expect_identical( c(Rd(Rd_text('  ')), Rd_alias('name'))
+    expect_identical( Rd_c(Rd(Rd_text('  ')), Rd_alias('name'))
                     , Rd(Rd_text('  '), Rd_alias('name'))
                     )
-    expect_identical( c(Rd(Rd_text('  ')), 'name')
+    expect_identical( Rd_c(Rd(Rd_text('  ')), 'name')
                     , .Rd(Rd_text('  '), 'name')
                     )
-    expect_identical( c(Rd(Rd_text('  ')), Rd_alias('name'), Rd_text('\n'))
+    expect_identical( Rd_c(Rd(Rd_text('  ')), Rd_alias('name'), Rd_text('\n'))
                     , .Rd(Rd_text('  '), Rd_alias('name'), Rd_text('\n'))
                     )
-    expect_identical( c(Rd(Rd_text('  ')), Rd_text('name'), Rd_text('\n'))
+    expect_identical( Rd_c(Rd(Rd_text('  ')), Rd_text('name'), Rd_text('\n'))
                     , .Rd(Rd_text('  '), Rd_text('name'), Rd_text('\n'))
                     )
 }

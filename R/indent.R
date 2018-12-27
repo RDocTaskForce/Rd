@@ -1,6 +1,8 @@
 .Rd.default.indent <- .Rd(Rd_text("  "))
-setHook("onLoad", options( 'Rd::indent' = FALSE
-                         , 'Rd::indent.with' = .Rd.default.indent))
+setHook("onLoad", function(...){
+        options( 'Rd::indent' = FALSE
+               , 'Rd::indent.with' = .Rd.default.indent)
+})
 
 #' Check and clean an indent string
 #'
@@ -156,6 +158,7 @@ if(FALSE){#@testing Rd_indent for Rd_tag
     rd <- Rd_tag('\\description'
                 , Rd_text("a description without\n")
                 , Rd_text("a leading newline")
+                , .check=FALSE
                 )[2:3]
     expect_identical( format(Rd_indent(rd, '             ', indent.first = FALSE))
                     ,"\\description{a description without" %\%
@@ -164,6 +167,7 @@ if(FALSE){#@testing Rd_indent for Rd_tag
                     , Rd_tag('\\description'
                             , Rd_text("  a description without\n")
                             , Rd_text("  a leading newline")
+                            , .check=FALSE
                             )[2:3] )
 }
 if(FALSE){#@testing Rd_indent errors

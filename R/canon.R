@@ -124,14 +124,15 @@ Rd_canonize_text <- function(rd, .check = TRUE, ...){
             if (lines =='\n') return(.Rd.newline)
             return(forward_attributes(list(Rd_text(lines)), rd))
         }
-        lines <- ifelse( lines == '\n'
-                       , .Rd.newline
-                       , ifelse( is_whitespace(lines)
-                               , lapply(lines, structure
-                                       , Rd_tag="TEXT"
-                                       , class=c('Rd_indent', 'Rd_TEXT', 'Rd_tag', 'Rd'))
-                               , lapply(lines, Rd_text))
-                               )
+        # lines <- ifelse( lines == '\n'
+        #                , .Rd.newline
+        #                , ifelse( is_whitespace(lines)
+        #                        , lapply(lines, structure
+        #                                , Rd_tag="TEXT"
+        #                                , class='Rd_string')
+        #                        , lapply(lines, Rd_text))
+        #                        )
+        lines <- lapply(lines, structure, Rd_tag="TEXT", class='Rd_string')
         return(fwd(lines, rd))
     } else if (!any(purrr::map_lgl(rd, is.list))){
         return(rd)

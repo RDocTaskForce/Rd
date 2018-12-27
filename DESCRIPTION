@@ -39,4 +39,5 @@ Collate:
     'convenience.R'
     'globals.R'
     'indent.R'
+    'keyword.db.R'
     'util-Rd.R'

@@ -362,10 +362,10 @@ if(FALSE){#@testing Class-Rd
 Rd_tag  <-
 function( tag
         , ...
-        , content = list(...)
+        , content = Rd(...)
         , opt = NULL
-        , indent         = getOption("Rd::indent")
-        , indent.with    = getOption("Rd::indent.with")
+        , indent         = getOption("Rd::indent", FALSE)
+        , indent.with    = getOption("Rd::indent.with", '  ')
         , .check = NA
         ){
     assert_that( is.flag(.check)
@@ -387,17 +387,21 @@ function( tag
     content <- check_content(content, .check=.check)
     if (length(opt))
         assert_that(is_valid_Rd_object(opt))
-    if (Rd_spans_multiple_lines(content)) {
-        if (!Rd_starts_with_newline(content)) content <- c(.Rd.newline, content)
-        if (!Rd_ends_with_newline(content)) content <- c(content, .Rd.newline)
+    if (Rd_spans_multiple_lines(cl(content, 'Rd'))) {
+        type <- if (get_Rd_tag(content[[1]]) == 'RCODE') 'RCODE' else 'TEXT'
+        nl <- .Rd(Rd_string('\n', type))
+        if (!Rd_starts_with_newline(content)) content <- c(nl, content)
+        if (!Rd_ends_with_newline(content)) content <- c(content, nl)
         if (indent)
             content <- Rd_indent(content, indent.with = indent.with)
     }
-    return(s( content
+    val <- s( content
             , Rd_tag = tag
             , class  = 'Rd_tag'
             , Rd_option = opt %if% length(opt)
-            ))
+            )
+    if (!isFALSE(.check)) val <- Rd_canonize(val)
+    return(val)
 }
 if(FALSE){#! @testing
     expect_error(Rd_tag(NULL, 'test'), "tag is not a string")
@@ -426,18 +430,6 @@ if(FALSE){#@testing
 
     expect_is(val, 'Rd_tag')
     expect_identical(format(val), "\\link[pkg]{dest}")
-
-    # Error in .Rd_indent
-    # lines <- strwrap( collapse(stringi::stri_rand_lipsum(3), '\n\n'), width = 72)
-    # content <- Rd(Rd_text(collapse(lines, '\n')))
-    # expect_true(length(content)>5)
-    #
-    # tag <- Rd_tag( '\\description', content=content
-    #              , indent=TRUE, indent.with = ' '
-    #              )
-    # expect_true(is_Rd_tag(tag, '\\description'))
-    # expect_true(length(tag) > 5L)
-    # expect_equal(substr(tag[[2]], 1, 13)[[1]], '  Lorem ipsum')
 }
 setValidity('Rd_tag', function(object){
     validate_that( is.list(object) || is.character(object)

@@ -55,6 +55,45 @@ if(FALSE){#@testing
     expect_identical(val, exp)
 }
 
+ensure_ends_with_newline <- function(rd, .check=TRUE){
+    if (is.list(rd)){
+        if(.check)
+            assert_that(all(are_Rd_strings(rd, c('RCODE', 'TEXT'))))
+        lapply(rd, ensure_ends_with_newline, .check=FALSE)
+    } else {
+        if(.check)
+            assert_that(is_Rd_string(rd, c('RCODE', 'TEXT')))
+        if (Rd_ends_with_newline(rd)) return(rd)
+        fwd(paste0(rd, '\n'), rd)
+    }
+}
+if(FALSE){#@testing
+    expect_identical( ensure_ends_with_newline(Rd_text("testing"))
+                    , Rd_text("testing\n"))
+    expect_identical( ensure_ends_with_newline(Rd_rcode("testing"))
+                    , Rd_rcode("testing\n"))
+    expect_identical( ensure_ends_with_newline(
+                        list( Rd_rcode("testing()")
+                            , Rd_rcode("test_me()")
+                            ))
+                    , list( Rd_rcode("testing()\n")
+                          , Rd_rcode("test_me()\n")
+                          ))
+    expect_identical( ensure_ends_with_newline(
+                        list( Rd_rcode("testing()\n")
+                            , Rd_rcode("test_me()")
+                            ))
+                    , list( Rd_rcode("testing()\n")
+                          , Rd_rcode("test_me()\n")
+                          ))
+    expect_identical( ensure_ends_with_newline(
+                        list( Rd_rcode("testing()\n")
+                            , Rd_rcode("test_me()\n")
+                            ))
+                    , list( Rd_rcode("testing()\n")
+                          , Rd_rcode("test_me()\n")
+                          ))
+}
 
 ### Testing Helpers ####
 
