@@ -51,6 +51,9 @@ if(FALSE){#@testing
     suppress_messages(author <- Rd("My Name ", Rd_tag("\\email", "my.name@email")))
     expect_Rd_tag(. <- Rd_author(author), "\\author")
     expect_identical(format(.), "\\author{My Name \\email{my.name@email}}")
+
+    expect_Rd_tag(. <- Rd_author(person("Given", "Family")), '\\author')
+    expect_identical(format(.), "\\author{Given Family}")
 }
 
 #' @describeIn shortcuts create an arguments tag

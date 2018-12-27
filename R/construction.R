@@ -37,7 +37,10 @@ if(FALSE){#@testing
     expect_equal( fwd(unlist(y, recursive = FALSE), x), x)
 }
 
-check_content <- function(content, .check=NA, label= NULL){
+check_content <- function( content, .check=NA, label= NULL
+                         , verbose = getOption("Rd::verbose"
+                                    , getOption("verbose", FALSE))
+                         ){
     label = label %||% deparse(substitute(content))
     if (isFALSE(.check)) {
         return(content)
@@ -62,7 +65,7 @@ check_content <- function(content, .check=NA, label= NULL){
                              else  ._("There were %d character strings in %s" %<<%
                                       "that were converted to" %<<%
                                       "Rd_string/TEXT.", n, label)
-                       , type="class inference")
+                       , type="class inference") %if% verbose
         }
         untagged.lists <- are(content, 'list')
         if (any(untagged.lists)) {
@@ -85,7 +88,7 @@ check_content <- function(content, .check=NA, label= NULL){
                              else  ._("There were %d lists in %s" %<<%
                                       "that were converted to" %<<%
                                       "Rd objects.", n, label)
-                       , type="class inference")
+                       , type="class inference") %if% verbose
         }
     } else
     if (isTRUE(.check)) {
@@ -96,8 +99,8 @@ check_content <- function(content, .check=NA, label= NULL){
     return(Rd_canonize(content, .check=FALSE))
 }
 check_content <- skip_scope(check_content)
-test_check_content <- function(..., content=list(...), .check=NA){
-    check_content(content=content, .check=.check)
+test_check_content <- function(..., content=list(...), .check=NA, verbose=TRUE){
+    check_content(content=content, .check=.check, verbose=verbose)
 }
 if(FALSE){#@testing check_content(., .check=NA)
     expect_identical(test_check_content(content=list()), .Rd())
@@ -112,8 +115,7 @@ if(FALSE){#@testing check_content(., .check=NA)
                   , regexp = "There were 2 character strings in content" %<<%
                              "that were converted to Rd_string/TEXT\\.")
 
-    expect_warning( suppress_messages( val <- test_check_content(c("hello", "world"))
-                                     , class = "message-class inference")
+    expect_warning( val <- test_check_content(c("hello", "world"), verbose=FALSE)
                   , class = "Rd::test_check_content-warning-collapsing_character_vector")
 
     expect_message( val <- test_check_content(Rd_text("hello"), list(Rd_text("world")))
@@ -267,7 +269,9 @@ if(FALSE){#@testing Rd_rcode, Rd_symb, and Rd_comment
 #' @export
 #' @family construction
 Rd <-
-function(..., content = list(...), .check=NA){
+function(..., content = list(...), .check=NA
+        , verbose = getOption("Rd::verbose", getOption("verbose", FALSE))
+        ){
     assert_that(missing(content) || ...length() == 0L)
     #' @details
     #' An empty Rd vector can be created with a `Rd()` call.
@@ -282,12 +286,12 @@ function(..., content = list(...), .check=NA){
     #' collapsed  and normalized to a `Rd` container of Rd string.
     #'
     #' @return Will allways return valid Rd in canonical form.
-    content <- check_content(content, .check=.check)
+    content <- check_content(content, .check=.check, verbose=verbose)
     cl(content, 'Rd')
 }
 if(FALSE){#@testing
     a <- "test"
-    expect_message( b <- Rd(a)
+    expect_message( b <- Rd(a, verbose=TRUE)
                   , "There was 1 character string at position 1" %<<%
                     "of content that was converted to an Rd_string/TEXT." )
     expect_is_exactly(b, 'Rd')
@@ -310,7 +314,7 @@ if(FALSE){#@testing
     expect_is(Rd(), 'Rd')
     expect_length(Rd(), 0L)
 
-    expect_message(x <- Rd(collapse(stringi::stri_rand_lipsum(3), '\n\n')))
+    expect_message(x <- Rd(collapse(stringi::stri_rand_lipsum(3), '\n\n'), verbose=TRUE))
     expect_Rd_bare(x)
     expect_Rd_string(x[[1L]], 'TEXT')
     expect_true(all(are_Rd_strings(x, 'TEXT')))
@@ -367,6 +371,7 @@ function( tag
         , indent         = getOption("Rd::indent", FALSE)
         , indent.with    = getOption("Rd::indent.with", '  ')
         , .check = NA
+        , verbose = getOption("Rd::verbose", getOption("verbose", FALSE))
         ){
     assert_that( is.flag(.check)
                , is.string(tag)
@@ -384,7 +389,7 @@ function( tag
                                      , type = "invalid Rd tag"
                                      )
     }
-    content <- check_content(content, .check=.check)
+    content <- check_content(content, .check=.check, verbose=verbose)
     if (length(opt))
         assert_that(is_valid_Rd_object(opt))
     content <- cl(content, 'Rd')
