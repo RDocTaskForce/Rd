@@ -387,11 +387,12 @@ function( tag
     content <- check_content(content, .check=.check)
     if (length(opt))
         assert_that(is_valid_Rd_object(opt))
+    content <- cl(content, 'Rd')
     if (Rd_spans_multiple_lines(cl(content, 'Rd'))) {
         type <- if (get_Rd_tag(content[[1]]) == 'RCODE') 'RCODE' else 'TEXT'
         nl <- .Rd(Rd_string('\n', type))
-        if (!Rd_starts_with_newline(content)) content <- c(nl, content)
-        if (!Rd_ends_with_newline(content)) content <- c(content, nl)
+        if (!Rd_starts_with_newline(content)) content <- Rd_c(nl, content)
+        if (!Rd_ends_with_newline(content)) content <- Rd_c(content, nl)
         if (indent)
             content <- Rd_indent(content, indent.with = indent.with)
     }
@@ -420,6 +421,9 @@ if(FALSE){#! @testing
                        , Rd_tag = "\\name"
                        , class  = 'Rd_tag'
                        ))
+
+    expect_error(Rd_tag('name', Rd_text('my name'), .check = TRUE)
+                , class="Rd-error-invalid Rd tag" )
 }
 if(FALSE){#@testing
     x <- Rd_tag('\\item', Rd(Rd_text('arg')), Rd(Rd_text("an agrument")))
@@ -430,6 +434,29 @@ if(FALSE){#@testing
 
     expect_is(val, 'Rd_tag')
     expect_identical(format(val), "\\link[pkg]{dest}")
+}
+if(FALSE){#@testing Rd_tag(indent=TRUE)
+    val <- Rd_tag('\\description'
+                 , Rd_text('line 1\n')
+                 , Rd_text('line 2\n')
+                 , indent=TRUE
+                 , indent.with='    '
+                 )
+    exp <- Rd_tag('\\description'
+                 , Rd_text('\n')
+                 , Rd_text('    line 1\n')
+                 , Rd_text('    line 2\n')
+                 , .check=FALSE
+                 )
+    expect_Rd_tag(val, '\\description')
+    expect_length(val, 3L)
+    expect_identical(val, exp)
+    expect_identical( format(val)
+                    , "\\description{" %\%
+                      "    line 1" %\%
+                      "    line 2" %\%
+                      "}"
+                    )
 }
 setValidity('Rd_tag', function(object){
     validate_that( is.list(object) || is.character(object)

@@ -251,11 +251,7 @@ if(FALSE){#@testing
     expect_false(is_Rd_newline(Rd_verb('\n')))
 }
 
-## Text Testing
-
-Rd_is_all_text <- function(x, label=NULL){
-    .Deprecated('are_Rd_tags')
-}
+## Text Testing #####
 
 Rd_spans_multiple_lines <- function(x){
     grepl('\\n(?!$)', format(x), perl=TRUE)

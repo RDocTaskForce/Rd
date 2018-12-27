@@ -111,7 +111,7 @@ if(FALSE){#@testing
     a <- s( list(Rd_symb("some"))
           , Rd_tag="\\keyword"
           , class=c("Rd_tag", 'Rd'))
-    b <- forward_attributes(list, a)
+    b <- forward_attributes(list(), a)
     expect_identical(attributes(a), attributes(b))
 
     a <- s( matrix(1:6, 2, 3)
@@ -128,16 +128,6 @@ if(FALSE){#@testing
 
 #' @describeIn aliases Alias for `forward_attributes()`.
 fwd <- forward_attributes
-
-
-#' @describeIn aliases Remove most attributes from an object.
-no_attributes <- function(obj){
-    mostattributes(obj) <- NULL
-    return(obj)
-}
-
-#' @describeIn aliases Remove the source references for an object
-no_src <- function(obj){s(obj, srcref=NULL, wholeSrcref=NULL, srcfile=NULL)}
 
 #' @describeIn aliases Check if a string is composed of only whitespace, with [regex][base::grep()] pattern `"^\\s+$"`.
 is_whitespace <- function(x){
