@@ -36,9 +36,12 @@ Rd_canonize <- function(rd, ..., .check=TRUE){
                    , msg = "Rd must be valid before it can be put in cannonical form."
                    )
     if (is.character(rd))
-        rd <- .Rd(rd)
-    if (is_exactly(rd, 'list'))
-        rd <- cl(rd, 'Rd')
+        rd <- .Rd(cl(rd, 'Rd_string'))
+    if (is(rd, 'list'))
+        if (is.null(get_Rd_tag(rd)))
+            rd <- cl(rd, 'Rd')
+        else
+            rd <- cl(rd, 'Rd_tag')
     rd <- Rd_canonize_text(rd)
     rd <- Rd_canonize_code(rd)
     return(rd)
@@ -57,7 +60,7 @@ if(FALSE){#@testing
                               , Rd_text('c\n')
                               ))
     expect_identical( Rd_unclass(val), expected)
-    expect_identical(Rd_canonize(rd), val)
+    expect_identical(Rd_canonize(val), val)
 
     rd <- Rd_tag( "\\examples"
                 , Rd_rcode("\n")
@@ -111,7 +114,32 @@ if(FALSE){#@testing Rd_canonize with output from parse_Rd
     expect_identical(Rd_canonize_text(x)[[1]], Rd_tag('\\item'))
     expect_identical(Rd_canonize_text(x)[[2]], Rd_text(' content'))
 }
+if(FALSE){#@testing Rd_canonize with unclassed arguments
+    x <- unclass(Rd_text('test'))
+    expect_is(x, 'character')
+    val <- Rd_canonize(x)
+    expect_Rd_bare(val)
+    expect_Rd_string(unclass(val)[[1]], 'TEXT')
 
+    x <- unclass(Rd_tag('\\bold', 'text'))
+    expect_is(x, 'list')
+    expect_equal(get_Rd_tag(x), '\\bold')
+    val <- Rd_canonize(x)
+    expect_is(val, 'Rd_tag')
+    expect_Rd_tag(val, '\\bold')
+    expect_Rd_string(unclass(val)[[1]], 'TEXT')
+
+    y <- unclass(Rd(x))
+    y[[1]] <- unclass(y[[1]])
+    expect_is(y, 'list')
+    expect_is(y[[1]], 'list')
+    val.y <- Rd_canonize(y)
+    expect_is(val.y, 'Rd')
+    expect_is(unclass(val.y)[[1]], 'Rd_tag')
+    expect_Rd_bare(val.y)
+    expect_Rd_tag(unclass(val.y)[[1]], '\\bold')
+    expect_Rd_string(unclass(val.y)[[1]][[1]], 'TEXT')
+}
 
 #' @describeIn Rd_canonize Put text in canonical form.
 #' @export
