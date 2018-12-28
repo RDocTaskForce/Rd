@@ -64,10 +64,9 @@ if(FALSE){#@testing Rd_clean_indent expected errors
                 , "indents must be whitespace with no newlines"
                 , class="Rd::Rd_clean_indent-error-assertion failure")
     expect_error( Rd_clean_indent(c(' ', ' '))
-                , ".indent.with. does not conform to a non-empty string"
+                , ".+indent\\.with.+ does not conform to a non-empty string"
                 , class="Rd::Rd_clean_indent-error-assertion failure")
     expect_error( Rd_clean_indent(s(c(' ', ' '), Rd_tag='TEXT', class='Rd_string'))
-                , ".indent.with. does not conform to a non-empty string"
                 , class="Rd::Rd_clean_indent-error-assertion failure")
     expect_error( Rd_clean_indent(Rd_verb('  '))
                 , "'Rd_tag' attribute is not in allowed tags"
