@@ -5,6 +5,7 @@
 #' @description
 #' These functions are provided to construct Rd structure.
 #' In some cases additional compliance checks are included.
+#' @param ...,content [Rd] elements to be contained in the tag.
 NULL
 
 #' @describeIn shortcuts Create an alias tag.
@@ -57,7 +58,7 @@ if(FALSE){#@testing
 }
 
 #' @describeIn shortcuts create an arguments tag
-#' @param ...,items arguments each should be an 'item' tag,
+#' @param items arguments each should be an 'item' tag,
 #'                  newlines to separate items are added automatically.
 #' @param indent indent content
 #' @param indent.with string to use for indent.
@@ -72,7 +73,7 @@ function( ...
     assert_that( all(are_Rd_tags(items, '\\item') ))
     content <- undim(rbind( indent.with %if% indent
                           , items
-                          , .Rd.newline
+                          , Rd.newline
                           ))
     Rd_tag(tag='\\arguments', content=content)
 }
@@ -105,9 +106,9 @@ if(FALSE){#@testing
 }
 
 #' @describeIn shortcuts Create a 'concept' tag.
-#' @param name the concept name, as a plain string.
+#' @param concept the concept name, as a plain string.
 #' @export
-Rd_concept <- function(name){Rd_tag('\\concept', Rd_text(name))}
+Rd_concept <- function(concept){Rd_tag('\\concept', Rd_text(concept))}
 if(FALSE){#@testing
     expect_Rd_tag(Rd_concept('testing'), '\\concept')
     expect_identical( format(Rd_concept('testing'))
@@ -138,7 +139,9 @@ if(FALSE){#@testing
 
 #' @describeIn shortcuts Creat a description tag.
 #' @export
-Rd_description <- function(...) {Rd_tag("\\description", content=Rd(...))}
+Rd_description <- function(..., content=Rd(...)) {
+    Rd_tag("\\description", content=content)
+}
 if(FALSE){#@testing
     x <- strwrap(collapse(stringi::stri_rand_lipsum(3), '\n\n'), 72)
     val <- Rd_description(Rd_text(collapse(x, '\n')))
@@ -220,6 +223,7 @@ if(FALSE){#@testing
 
 #' @describeIn shortcuts Creat a keyword tag.
 #' @param key A string denoting a valid Rd keyword.
+#' @param .check perform validity checks?
 #' @export
 #' @examples
 #' Rd_keyword('documentation')
@@ -238,7 +242,7 @@ if(FALSE){#@testing
 }
 
 #' @describeIn shortcuts Creat multiple keyword tags.
-#' @param keyS A character vector denoting valid Rd keywords.
+#' @param keys A character vector denoting valid Rd keywords.
 #' @export
 Rd_keywords <- function(keys, .check=TRUE){
     if (.check) assert_that( is.character(keys)
@@ -281,7 +285,7 @@ if(FALSE){#@testing
 }
 
 #' @describeIn shortcuts Creat a ??? tag.
-#' @param ...,usages lines of usage, all should be bare strings
+#' @param usages lines of usage, all should be bare strings
 #'                   or [RCODE][Rd_string()] strings.
 #' @export
 Rd_usage <- function(..., usages=list(...)){
@@ -342,10 +346,10 @@ if(FALSE){# INACTIVE testing Rd_* tags
                               , indent.with = "  "
                               ), x <- txt[['\\arguments']][1:7])
 
-    desc <- Rd_description( .Rd.newline
+    desc <- Rd_description( Rd.newline
                           , Rd_text("  Density, distribution function, quantile function and random\n")
                           , Rd_text("  generation for the normal distribution with mean equal to ")
-                            ,  Rd_tag('code', Rd_rcode('mean')), .Rd.newline
+                            ,  Rd_tag('code', Rd_rcode('mean')), Rd.newline
                           , Rd_text("  and standard deviation equal to ")
                             , Rd_tag('code', Rd_rcode('sd'))
                           , Rd_text(".\n")
@@ -353,17 +357,17 @@ if(FALSE){# INACTIVE testing Rd_* tags
     expect_identical( collapse0(as.character(desc))
                     , collapse0(as.character(txt[['\\description']])))
 
-    expect_identical( Rd_examples( .Rd.code.newline
+    expect_identical( Rd_examples( Rd.code.newline
                                  , Rd_rcode("require(graphics)\n")
-                                 , .Rd.code.newline
+                                 , Rd.code.newline
                                  , Rd_rcode("dnorm(0) == 1/sqrt(2*pi)\n")
                                  , Rd_rcode("dnorm(1) == exp(-1/2)/sqrt(2*pi)\n")
                                  , Rd_rcode("dnorm(1) == 1/sqrt(2*pi*exp(1))\n")
                                  )
                       , txt[[52]][1:6] )
-    expect_identical( Rd_examples( content=Rd( .Rd.code.newline
+    expect_identical( Rd_examples( content=Rd( Rd.code.newline
                                              , Rd_rcode("require(graphics)\n")
-                                             , .Rd.code.newline
+                                             , Rd.code.newline
                                              , Rd_rcode("dnorm(0) == 1/sqrt(2*pi)\n")
                                              , Rd_rcode("dnorm(1) == exp(-1/2)/sqrt(2*pi)\n")
                                              , Rd_rcode("dnorm(1) == 1/sqrt(2*pi*exp(1))\n")
@@ -378,11 +382,11 @@ if(FALSE){# INACTIVE testing Rd_* tags
     expect_identical( Rd_name('Normal'), txt[['\\name']])
     expect_identical(Rd_title('The Normal Distribution'), txt[['\\title']])
 
-    expect_identical(Rd_usage( .Rd.code.newline
-                               , Rd_rcode("dnorm(x, mean = 0, sd = 1, log = FALSE)\n")
-                               , Rd_rcode("pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)\n")
-                               , Rd_rcode("qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)\n")
-                               , Rd_rcode("rnorm(n, mean = 0, sd = 1)\n")
-    ), txt[['\\usage']])
+    expect_identical(Rd_usage( Rd.code.newline
+                             , Rd_rcode("dnorm(x, mean = 0, sd = 1, log = FALSE)\n")
+                             , Rd_rcode("pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)\n")
+                             , Rd_rcode("qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)\n")
+                             , Rd_rcode("rnorm(n, mean = 0, sd = 1)\n")
+                             ), txt[['\\usage']])
 }
 

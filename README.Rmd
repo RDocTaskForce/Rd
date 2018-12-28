@@ -11,8 +11,11 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+library(Rd)
 ```
 # Rd
+[![Travis build status](https://travis-ci.org/RDocTaskForce/Rd.svg?branch=master)](https://travis-ci.org/RDocTaskForce/Rd)
+[![Coverage status](https://codecov.io/gh/RDocTaskForce/Rd/branch/master/graph/badge.svg)](https://codecov.io/github/RDocTaskForce/Rd?branch=master)
 
 The goal of Rd is to extend the base utilities in the `tools` and `utils` package to facilitate
 creation, checking and manipulation of R documentation (Rd) objects in code.
@@ -21,19 +24,35 @@ creation, checking and manipulation of R documentation (Rd) objects in code.
 
 You can install the released version of Rd from [CRAN](https://CRAN.R-project.org) with:
 
-``` r
+```r
 install.packages("Rd")
 ```
 
 
 ## Examples
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example for constructing an Rd document from scratch:
 
 ```{r example}
-## basic example code coming soon.
+## Recreating the first few lines of the `example` help file. 
+R <- Rd_tag("\\R")
+Rd( Rd_name('example'), '\n'
+  , Rd_alias('example'), '\n'
+  , Rd_title("Run an Examples Section from the Online Help"), '\n'
+  , Rd_description( "Run all ", R, " code from the "
+                  , Rd_tag("\\bold", "Examples"), " part of \n"    
+                  , R, "'s online help topic ", Rd_code("topic")
+                  , " with possible exceptions \n"
+                  , Rd_code("dontrun"), ", "
+                  , Rd_code("dontshow"), ", and "
+                  , Rd_code("donttest"), ",\n see "
+                  , Rd_tag("\\sQuote", "Details"), " below."
+                  )
+  )
 ```
 
+Note that the line breaks are unnecessary for functionality,
+they are included  
 
 # Details and Internals
 
@@ -73,4 +92,5 @@ symantic identification, but for printing and formatting all are returned verbat
 The `Rd_tag` objects are converted to the latex like `\tag` commands
 when formatted for printing or writing files.  The tag to be used is stored
 in the `Rd_tag` attribute.
+
 

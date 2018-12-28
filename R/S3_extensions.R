@@ -214,6 +214,14 @@ if(FALSE){#@testing `[.Rd` and `[.Rd_tag`
     expect_equal(args[  integer(0)], Rd_tag("\\arguments"))
 }
 
+#' Combine Rd elements
+#'
+#' @note
+#' The special considerations for Rd elements necessitate a
+#' special method for combining the traditional generic [c][base::c()]
+#' cannot be used due to problems that occure, particularly in the
+#' [RStudio](http://rstudio.com) GUI.
+#' @param ... [Rd] elements.
 #' @export
 Rd_c  <- function(...){
     l <- list(...)

@@ -25,6 +25,11 @@
 #' @param .check Perform input checks?
 #' @inheritDotParams is_valid_Rd_object
 #' @export
+#' @examples
+#' ## Rd_c does not guarantee canonical code.
+#' x <- Rd_c(Rd('Testing'), Rd('\n'))
+#' str(x)
+#' str(Rd_canonize(x))
 Rd_canonize <- function(rd, ..., .check=TRUE){
     if (!isFALSE(.check))
         assert_that( is_valid_Rd_object(rd, ...)
@@ -100,8 +105,7 @@ if(FALSE){#@testing Rd_canonize with output from parse_Rd
     expected <- Rd(Rd_text("test strings\n"), Rd_text("second line"))
     expect_identical(val, expected)
 
-    expect_identical(Rd_canonize_text(.Rd.newline), .Rd.newline)
-
+    expect_identical(Rd_canonize_text(Rd.newline), Rd.newline)
 
     x <- .Rd( Rd_tag("\\item"), Rd_text(" "), Rd_text("content"))
     expect_identical(Rd_canonize_text(x)[[1]], Rd_tag('\\item'))
@@ -121,7 +125,7 @@ Rd_canonize_text <- function(rd, .check = TRUE, ...){
         lines <- lines[nchar(lines) > 0L]
 
         if (length(lines) == 1){
-            if (lines =='\n') return(.Rd.newline)
+            if (lines =='\n') return(Rd.newline)
             return(forward_attributes(list(Rd_text(lines)), rd))
         }
         # lines <- ifelse( lines == '\n'

@@ -234,20 +234,21 @@ if(FALSE){#@testing is_valid_Rd_object against parse_Rd results
 }
 
 #' Check if an element is a newline
-is_Rd_newline <- function(x, ...){
+#' @param x object to check
+is_Rd_newline <- function(x){
     if (is(x, c('Rd')) && length(x)==1) x <- x[[1]]
     see_if( is_Rd_string(x, c('TEXT', 'RCODE'))
           , x == '\n'
           )
 }
 if(FALSE){#@testing
-    expect_true(is_Rd_newline(.Rd.newline))
-    expect_true(is_Rd_newline(.Rd.newline[[1]]))
-    expect_false(is_Rd_newline(.Rd.newline[[1]][[1]]))
-    expect_true(is_Rd_newline(.Rd.code.newline))
-    expect_true(is_Rd_newline(.Rd.code.newline[[1]]))
-    expect_true(is_Rd_newline(.Rd.code.newline[[1]]))
-    expect_false(is_Rd_newline(.Rd(.Rd.newline)))
+    expect_true(is_Rd_newline(Rd.newline))
+    expect_true(is_Rd_newline(Rd.newline[[1]]))
+    expect_false(is_Rd_newline(Rd.newline[[1]][[1]]))
+    expect_true(is_Rd_newline(Rd.code.newline))
+    expect_true(is_Rd_newline(Rd.code.newline[[1]]))
+    expect_true(is_Rd_newline(Rd.code.newline[[1]]))
+    expect_false(is_Rd_newline(.Rd(Rd.newline)))
     expect_false(is_Rd_newline(Rd_verb('\n')))
 }
 

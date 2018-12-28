@@ -4,6 +4,14 @@
 
 
 ### toRd #######################################################################
+#' @title Convert an object to Rd
+#' @description
+#' This provides the generic for converting objects to Rd.
+#' It extends the core function [toRd][tools::toRd].
+#'
+#' @param obj object to convert
+#' @param ... passed on to methods
+#'
 #' @export
 setGeneric('toRd',
 function(obj, ...){
@@ -43,11 +51,11 @@ if(FALSE){#@testing INACTIVE
 
 # S3 Methods ----------------------------------------------------------
 
-if (FALSE){# testing INACTIVE toRd,character
-    expect_identical( toRd(c("\\hello\n", "%world"))
-                    , Rd(Rd_text("\\\\hello\n"), Rd_text("\\%world")))
-}
-
+#' @rdname toRd
+#' @usage \\S3method{toRd}{NULL}(obj, ...)
+#' @S3method toRd NULL
+#' @examples
+#' str(toRd(NULL))
 toRd.NULL <- function(obj, ...){Rd()}
 if(FALSE){#@testing
     expect_identical(toRd(NULL), Rd())
@@ -59,13 +67,14 @@ Rd_unnest <- function(x){
     return(unlist(x, recursive = FALSE))
 }
 
-#' @describeIn toRd
+#' @rdname toRd
+#' @usage \\S3method{toRd}{list}(obj, ..., unnest=NA)
 #' @param unnest Should the results be [unlist][base::unlist()]ed to remove nesting?
 #'        A value of FALSE indicates that unnesting should never happen,
 #'        TRUE implies allways unnest elements with class [Rd], and when
 #'        NA, the default, unnesting will occure only if all elements
 #'        are Rd.
-#' @export
+#' @S3method toRd list
 toRd.list <- function(obj, ..., unnest=NA){
     val <- lapply(obj, toRd, ...)
     if (isTRUE(unnest) || (is.na(unnest) && all(are(val, 'Rd'))))
@@ -104,11 +113,19 @@ if(FALSE){#@testing
     expect_length(val3, 3)
 }
 
-#' @export
+#' @rdname toRd
+#' @usage \\S3method{toRd}{Rd_string}(obj, ...)
+#' @S3method toRd Rd_string
 toRd.Rd_string <- function(obj, ...)obj
-#' @export
+
+#' @rdname toRd
+#' @usage \\S3method{toRd}{Rd_tag}(obj, ...)
+#' @S3method toRd Rd_tag
 toRd.Rd_tag <- function(obj, ...)obj
-#' @export
+
+#' @rdname toRd
+#' @usage \\S3method{toRd}{Rd}(obj, ...)
+#' @S3method toRd Rd
 toRd.Rd <- function(obj, ...)obj
 if(FALSE){#@testing toRd.(Rd|Rd_tag|Rd_string)
     obj <- Rd("test")
@@ -123,13 +140,21 @@ if(FALSE){#@testing toRd.(Rd|Rd_tag|Rd_string)
     expect_identical(toRd(obj), obj)
 }
 
-#' @export
+#' @rdname toRd
+#' @usage \\S3method{toRd}{person}(obj, ..., include = c('given', 'family', 'email'))
+#' @S3method toRd person
+#' @param include The parts of the person object to include.
+#' @examples
+#' toRd(person('John' , 'Doe', email="john@email.com"))
+#' toRd(c( person('John' , 'Doe', email="john@email.com")
+#'       , person('Jane' , 'Poe', email="jane@email.com")
+#'       ))
 toRd.person<-
 function( obj
         , ...
-        , name.parts = c('given', 'family', 'email')
+        , include = c('given', 'family', 'email')
         ){
-    comma_list(format( obj, include = name.parts
+    comma_list(format( obj, include = include
                      , braces  = list(email = c('\\email{', '}'))
                      ))
 }
@@ -159,6 +184,9 @@ if (FALSE) {#@testing
                   )
 }
 
+#' @rdname toRd
+#' @usage \\S3method{toRd}{name}(obj, ...)
+#' @S3method toRd name
 toRd.name <- function(obj, ...)Rd_symb(as.character(obj))
 if(FALSE){#@testing
     obj <- as.name('test.name')

@@ -96,19 +96,21 @@ if(FALSE){#@testing
 }
 
 ### Testing Helpers ####
-
 expect_Rd_string <- function(object, tag, info=NULL, label = NULL){
+    requireNamespace('testthat')
     act <- testthat::quasi_label(rlang::enquo(object), label)
     val <- see_if(is_Rd_string(object, tag, strict=TRUE, reason = TRUE))
-    expect(val, act$label %<<% attr(val, 'msg'), info)
+    testthat::expect(val, act$label %<<% attr(val, 'msg'), info)
 }
 expect_Rd_tag <- function(object, tag, info=NULL, label = NULL){
+    requireNamespace('testthat')
     act <- testthat::quasi_label(rlang::enquo(object), label)
     val <- see_if(is_Rd_tag(object, tag, strict=TRUE, reason = TRUE))
-    expect(val, act$label %<<% attr(val, 'msg'), info)
+    testthat::expect(val, act$label %<<% attr(val, 'msg'), info)
 }
 expect_Rd_bare <- function(object, info=NULL, label = NULL){
+    requireNamespace('testthat')
     act <- testthat::quasi_label(rlang::enquo(object), label)
     val <- see_if(is_Rd(object, strict=TRUE))
-    expect(val, act$label %<<% attr(val, 'msg'), info)
+    testthat::expect(val, act$label %<<% attr(val, 'msg'), info)
 }

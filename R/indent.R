@@ -7,6 +7,7 @@ setHook("onLoad", function(...){
 #' Check and clean an indent string
 #'
 #' @param indent.with The string to use for indentation.
+#' @param type The type of string the indent is to be.
 #'
 #' @details
 #' Indents must have the following characteristics:
@@ -17,16 +18,17 @@ setHook("onLoad", function(...){
 #' * May only be Rd_strings of tag type 'TEXT' or 'RCODE'.
 #'   Code type should only be used to indent other text.
 #'
+#'
 #' @note When put in [canonical][Rd_canonize()] form the indents element
 #' will often be merged with other elements.
-#' @seealso [https://developer.r-project.org/Rds.html]
+#' @seealso <https://developer.r-project.org/Rds.html>
 #' @return An [Rd_string], of type 'TEXT' or 'CODE', see details,
 #'   wrapped in an [Rd] container.
 Rd_clean_indent <-
 function(indent.with, type=get_Rd_tag(indent.with)){
     if(is.null(type)) type = 'TEXT'
     if(is.character(indent.with)){
-        assert_that(is_nonempty_string(indent.with))
+        assert_that(testextra::is_nonempty_string(indent.with))
         if (is(indent.with, 'character')) {
             indent.with <- .Rd(Rd_string(indent.with, type))
         } else
@@ -107,10 +109,16 @@ if(FALSE){#@testing Rd_clean_indent expected output
 #'
 #' @param rd an [Rd] container or an [Rd tag][Rd_tag()].
 #' @param indent.with What to indent with. See [Rd_clean_indent()].
+#' @param recursive Indent recursively?
 #' @param ... Ingored but included for forward compatibility
 #'            and to force full names on subsequent parameters.
 #' @param no.first if the first element should be indented.
 #' @param .check check for valid Rd?
+#'
+#' @export
+#' @examples
+#' (x <- Rd_description("line 1\n", "line 2\n"))
+#' Rd_indent(x)
 Rd_indent <-
 function( rd   #< Rd object.
         , indent.with = getOption("Rd::indent.with", "  ")

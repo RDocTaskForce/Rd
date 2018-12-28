@@ -156,11 +156,19 @@ if(FALSE){#@testing check_content(., .check=TRUE)
 
 
 # String Construction -----------------------------------------------------------------
-#' Rd String Construction
+#' @name Rd_string_creation
+#' @title Rd String Construction
+#'
+#' @description
+#' Construct a Rd string type.
 #'
 #' @param content a string to type as an Rd string type
 #' @param type the type of text is is.
 #'
+#' @family construction
+NULL
+
+#' @rdname Rd_string_creation
 #' @export
 Rd_string <-
 function( content
@@ -174,8 +182,11 @@ function( content
      )
 }
 
-#' @describeIn Rd_string Type as plain text.
+#' @describeIn Rd_string_creation Type as plain text.
 #' @export
+#' @examples
+#' ## Plain text
+#' Rd_text("Plain text")
 Rd_text <-  function(content){
     Rd_string(content, type='TEXT')
 }
@@ -210,8 +221,11 @@ if(FALSE){#@testing
     expect_length(x, 1L)
 }
 
-#' @describeIn Rd_string Type as R Code.
+#' @describeIn Rd_string_creation Type as R Code.
 #' @export
+#' @examples
+#' ## R Code
+#' Rd_rcode("code()")
 Rd_rcode <- function(content){
     Rd_string(content, type='RCODE')
 }
@@ -220,12 +234,16 @@ if(FALSE){ #@testing
     expect_identical(val, s('1+1==2', Rd_tag='RCODE', class='Rd_string'))
 }
 
-#' @describeIn Rd_string Type as R symbol or 'verb'.
+#' @describeIn Rd_string_creation Type as R symbol or 'verb'.
 #' @export
+#' @examples
+#' ## Symbols, i.e. verbs
+#' Rd_verb("verb")
+#' Rd_symb("symbol")
 Rd_verb <- function(content){
     Rd_string(content, type='VERB')
 }
-#' @describeIn Rd_string Type as R symbol or 'verb'.
+#' @describeIn Rd_string_creation Type as R symbol or 'verb'.
 #' @export
 Rd_symb <- Rd_verb
 if(FALSE){ #@testing
@@ -234,8 +252,11 @@ if(FALSE){ #@testing
 }
 
 
-#' @describeIn Rd_string type as Rd comment. Comments must start with the comment character '%'.
+#' @describeIn Rd_string_creation type as Rd comment. Comments must start with the comment character '%'.
 #' @export
+#' @examples
+#' ## Rd Comments
+#' Rd_comment("% Rd/LaTeX comment")
 Rd_comment <- function(content){
     assert_that( grepl(pattern='^%', content)
                , msg = "Ill-formed comment")
@@ -266,8 +287,25 @@ if(FALSE){#@testing Rd_rcode, Rd_symb, and Rd_comment
 #'               A value of FALSE indicates no checking,
 #'               TRUE strict checking and
 #'               NA convert where possible, with messages and warnings.
+#' @param verbose Print informational messages.
 #' @export
 #' @family construction
+#' @examples
+#' ## Recreating the first few lines of the `example` help file.
+#' R <- Rd_tag("\\R")
+#' Rd( Rd_name('example'), '\n'
+#'   , Rd_alias('example'), '\n'
+#'   , Rd_title("Run an Examples Section from the Online Help"), '\n'
+#'   , Rd_description( "Run all ", R, " code from the "
+#'                   , Rd_tag("\\bold", "Examples"), " part of \n"
+#'                   , R, "'s online help topic ", Rd_code("topic")
+#'                   , " with possible exceptions \n"
+#'                   , Rd_code("dontrun"), ", "
+#'                   , Rd_code("dontshow"), ", and "
+#'                   , Rd_code("donttest"), ",\n see "
+#'                   , Rd_tag("\\sQuote", "Details"), " below."
+#'                   )
+#'   )
 Rd <-
 function(..., content = list(...), .check=NA
         , verbose = getOption("Rd::verbose", getOption("verbose", FALSE))
@@ -351,6 +389,7 @@ if(FALSE){#@testing Class-Rd
 #' Rd_tag containers can contain, [strings][Rd_string()],
 #' [Rd containers][Rd()] and other tags.
 #'
+#' @inheritParams Rd
 #' @param tag     The Rd/LaTeX tag to use.  Must start with the backslash.
 #' @param ...,content The content specified in individual form or list form.
 #'                    Either may be used but not both.
@@ -363,6 +402,10 @@ if(FALSE){#@testing Class-Rd
 #'               A value of FALSE indicates no checking,
 #'               TRUE strict checking and
 #'               NA convert where possible, with messages and warnings.
+#' @export
+#' @family construction
+#' @examples
+#' Rd_tag("\\bold", Rd_text("Bolded text."))
 Rd_tag  <-
 function( tag
         , ...
