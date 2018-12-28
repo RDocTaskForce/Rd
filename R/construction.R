@@ -323,7 +323,7 @@ function(..., content = list(...), .check=NA
     #' A character vector may be passed to Rd where it is
     #' collapsed  and normalized to a `Rd` container of Rd string.
     #'
-    #' @return Will allways return valid Rd in canonical form.
+    #' @return Will always return valid Rd in canonical form.
     content <- check_content(content, .check=.check, verbose=verbose)
     cl(content, 'Rd')
 }

@@ -85,7 +85,8 @@ It contains several different categories of text which is specified in the
 * `"UNKNOWN"` - If it cannot be categorized.
 
 It should be noted that the different types of `Rd_string` is for 
-symantic identification, but for printing and formatting all are returned verbatim.
+contextual identification, but for printing and formatting all are 
+returned verbatim.
 
 
 ### `Rd_tag`

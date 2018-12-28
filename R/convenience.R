@@ -92,7 +92,7 @@ if(FALSE){#@testing
 
 
 #' @describeIn shortcuts Create a code tag.
-#' @param code a string to be converted to 'RCODE' then wrapped in the 'code' tag.
+#' @param code a string to be converted to `RCODE` then wrapped in the 'code' tag.
 #' @export
 Rd_code <- function(code){Rd_tag('\\code', Rd_rcode(code))}
 if(FALSE){#@testing
@@ -137,7 +137,7 @@ if(FALSE){#@testing
     expect_error(Rd_concepts(TRUE))
 }
 
-#' @describeIn shortcuts Creat a description tag.
+#' @describeIn shortcuts Create a description tag.
 #' @export
 Rd_description <- function(..., content=Rd(...)) {
     Rd_tag("\\description", content=content)
@@ -151,7 +151,7 @@ if(FALSE){#@testing
     expect_Rd_string(val[[2]], 'TEXT')
 }
 
-#' @describeIn shortcuts Creat a, eamples tag.
+#' @describeIn shortcuts Create an examples tag.
 #' @export
 Rd_examples <- function(..., content=list(...)) {
     . <- are(content, 'character')
@@ -221,7 +221,7 @@ if(FALSE){#@testing
     expect_identical(format(val), "\\item{\\code{a}:}{the first letter of the alphabet}")
 }
 
-#' @describeIn shortcuts Creat a keyword tag.
+#' @describeIn shortcuts Create a keyword tag.
 #' @param key A string denoting a valid Rd keyword.
 #' @param .check perform validity checks?
 #' @export
@@ -241,7 +241,7 @@ if(FALSE){#@testing
     expect_identical(format(Rd_keyword('documentation')), "\\keyword{documentation}")
 }
 
-#' @describeIn shortcuts Creat multiple keyword tags.
+#' @describeIn shortcuts Create multiple keyword tags.
 #' @param keys A character vector denoting valid Rd keywords.
 #' @export
 Rd_keywords <- function(keys, .check=TRUE){
@@ -261,7 +261,7 @@ if(FALSE){#@testing
                     , "\\keyword{documentation}\n\\keyword{utilities}")
 }
 
-#' @describeIn shortcuts Creat a name tag.
+#' @describeIn shortcuts Create a name tag.
 #' @param name A string for a name of the Rd document.
 #' @export
 Rd_name <- function(name){
@@ -274,8 +274,8 @@ if(FALSE){#@testing
 }
 
 
-#' @describeIn shortcuts Creat a title tag.
-#' @param title A string givng the title.
+#' @describeIn shortcuts Create a title tag.
+#' @param title A string giving the title.
 #' @export
 Rd_title <- function(title){Rd_tag('\\title', Rd_text(title))}
 if(FALSE){#@testing
@@ -284,9 +284,9 @@ if(FALSE){#@testing
                     , '\\title{A Title String}')
 }
 
-#' @describeIn shortcuts Creat a ??? tag.
+#' @describeIn shortcuts Create a usage tag.
 #' @param usages lines of usage, all should be bare strings
-#'                   or [RCODE][Rd_string()] strings.
+#'                   or [`RCODE`][Rd_string()] strings.
 #' @export
 Rd_usage <- function(..., usages=list(...)){
     . <- are(usages, 'character')
@@ -313,8 +313,8 @@ if(FALSE){#@testing
                       '}')
 }
 
-#' @describeIn shortcuts Creat a value tag section.
-#' @param value The return value, must be a corretly formatted [Rd] object.
+#' @describeIn shortcuts Create a value tag section.
+#' @param value The return value, must be a correctly formatted [Rd] object.
 #' @export
 Rd_value <- function(value){Rd_tag('\\value', content=value)}
 if(FALSE){#@testing

@@ -75,7 +75,7 @@ The `Rd` text is a character string, a length one non-empty character vector. It
 -   `"COMMENT"` - Comments in Rd, each should lead with the comment character `'%'`.
 -   `"UNKNOWN"` - If it cannot be categorized.
 
-It should be noted that the different types of `Rd_string` is for symantic identification, but for printing and formatting all are returned verbatim.
+It should be noted that the different types of `Rd_string` is for contextual identification, but for printing and formatting all are returned verbatim.
 
 ### `Rd_tag`
 

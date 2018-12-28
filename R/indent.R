@@ -15,7 +15,7 @@ setHook("onLoad", function(...){
 #' * Newlines are not allowed.
 #' * Tabs, are allowed with a warning as
 #'   they violate the guidelines.
-#' * May only be Rd_strings of tag type 'TEXT' or 'RCODE'.
+#' * May only be Rd_strings of tag type `TEXT` or `RCODE`.
 #'   Code type should only be used to indent other text.
 #'
 #'
@@ -110,7 +110,7 @@ if(FALSE){#@testing Rd_clean_indent expected output
 #' @param rd an [Rd] container or an [Rd tag][Rd_tag()].
 #' @param indent.with What to indent with. See [Rd_clean_indent()].
 #' @param recursive Indent recursively?
-#' @param ... Ingored but included for forward compatibility
+#' @param ... Ignored but included for forward compatibility
 #'            and to force full names on subsequent parameters.
 #' @param no.first if the first element should be indented.
 #' @param .check check for valid Rd?

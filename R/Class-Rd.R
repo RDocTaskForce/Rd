@@ -61,7 +61,7 @@ if(FALSE){#@testing
     class(x) <- 'Rd_string'
     expect_true(is_Rd_string(x, strict=TRUE))
 }
-#' @describeIn testing-Rd Explicitly vectorized version of is_Rd_string
+#' @describeIn testing-Rd Vector version of is_Rd_string.
 #' @export
 are_Rd_strings <-
 function(x, tags=NULL, strict=FALSE){
@@ -133,7 +133,7 @@ if(FALSE){#@testing
                     , s(FALSE, msg="'Rd_tag' attribute is not in allowed tags"))
 }
 
-#' @describeIn testing-Rd Explicitly vectorized version of is_Rd_tag
+#' @describeIn testing-Rd Vector version of is_Rd_tag
 #' @export
 are_Rd_tags <- function(x, tags=NULL, strict=FALSE){
     purrr::map_lgl(x, is_Rd_tag, tags=tags, strict=strict, reason=FALSE)
@@ -156,7 +156,7 @@ if(FALSE){#@testing
 }
 
 #' @describeIn testing-Rd check if a list is an Rd container object.
-#'
+#' @export
 is_Rd <- function(x, strict=FALSE){
     see_if( !strict || inherits(x, 'Rd')
           , is.list(x)
@@ -187,6 +187,7 @@ if(FALSE){#@testing
 #' @describeIn testing-Rd Check that an object is a valid Rd list,
 #'                        an `Rd_tag` or `Rd`, but not an `Rd_string`
 #' @param deep should contained elements also be checked for validity?
+#' @export
 is_valid_Rd_list <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) || !missing(tags)){
     if (is.character(x)) return(FALSE) else
     valid <- if (is.list(x) && !is.null(attr(x, 'Rd_tag'))){
@@ -200,6 +201,7 @@ is_valid_Rd_list <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) ||
 }
 
 #' @describeIn testing-Rd Check that an object is valid
+#' @export
 is_valid_Rd_object <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) || !missing(tags)){
     if (is.character(x)){
         return(is_Rd_string(x, tags=intersect(.Rd.string.tags, tags), strict=isTRUE(strict), reason=FALSE))

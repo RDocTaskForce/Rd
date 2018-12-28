@@ -6,7 +6,7 @@
 #'
 #' @details
 #'
-#' **Cannonical Rd Text has:**
+#' **Canonical Rd Text has:**
 #'
 #' * One line per element, with `attr(., 'Rd_tag')=='TEXT'`
 #' * The indents are merged with content if the first content is text.
@@ -14,7 +14,7 @@
 #'   but the newline must be the last character in the string and cannot appear anywhere else.
 #' * Comments are a separate class and do not include the newline.
 #'
-#' **Cannonical R code follows the following rules:**
+#' **Canonical R code follows the following rules:**
 #'
 #' * One element per line of code.
 #' * newline is included at the end of the line string,

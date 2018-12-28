@@ -7,7 +7,7 @@
 #' @title Convert an object to Rd
 #' @description
 #' This provides the generic for converting objects to Rd.
-#' It extends the core function [toRd][tools::toRd].
+#' It extends the core function [`toRd`][tools::toRd].
 #'
 #' @param obj object to convert
 #' @param ... passed on to methods
@@ -70,10 +70,10 @@ Rd_unnest <- function(x){
 #' @rdname toRd
 #' @usage \\S3method{toRd}{list}(obj, ..., unnest=NA)
 #' @param unnest Should the results be [unlist][base::unlist()]ed to remove nesting?
-#'        A value of FALSE indicates that unnesting should never happen,
-#'        TRUE implies allways unnest elements with class [Rd], and when
-#'        NA, the default, unnesting will occure only if all elements
-#'        are Rd.
+#'        A value of FALSE indicates that nesting should never be removed,
+#'        TRUE implies always remove nested elements with class [Rd],
+#'        and when NA, the default, nesting will be removed
+#'        only if all elements are Rd.
 #' @S3method toRd list
 toRd.list <- function(obj, ..., unnest=NA){
     val <- lapply(obj, toRd, ...)

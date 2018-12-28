@@ -5,7 +5,7 @@
 #' @title Internal Utilities
 #'
 #' These utilities are used internally and not exported.
-#' They are however documented for completness
+#' They are however documented for completeness
 #'
 #' @param x,obj An object, any object.
 #' @param ... passed on to other function(s).
@@ -87,7 +87,7 @@ if(FALSE){#@testing
 #' @describeIn aliases Alias for [tools::toRd.default()]
 clean_Rd <- tools:::toRd.default
 
-#' @describeIn aliases Alias for attr(x, which) %||% default.
+#' @describeIn aliases Alias for `attr(x, which) %||% default`.
 #' @param which name of the attribute to extract.
 #' @param default the default value to return if not found.
 #' @param exact exact or partial matching?

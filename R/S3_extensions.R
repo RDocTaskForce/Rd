@@ -219,7 +219,7 @@ if(FALSE){#@testing `[.Rd` and `[.Rd_tag`
 #' @note
 #' The special considerations for Rd elements necessitate a
 #' special method for combining the traditional generic [c][base::c()]
-#' cannot be used due to problems that occure, particularly in the
+#' cannot be used due to problems that occur, particularly in the
 #' [RStudio](http://rstudio.com) GUI.
 #' @param ... [Rd] elements.
 #' @export
