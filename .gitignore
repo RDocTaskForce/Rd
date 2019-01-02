@@ -3,4 +3,4 @@
 .RData
 .Ruserdata
 tests/testthat/test-*.R
-man
+man/*.Rd

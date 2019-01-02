@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-Rd
-==
+Rd <img src="man/figures/logo.png" align="right" height=140/>
+=============================================================
 
 [![Travis build status](https://travis-ci.org/RDocTaskForce/Rd.svg?branch=master)](https://travis-ci.org/RDocTaskForce/Rd) [![Coverage status](https://codecov.io/gh/RDocTaskForce/Rd/branch/master/graph/badge.svg)](https://codecov.io/github/RDocTaskForce/Rd?branch=master)
 
