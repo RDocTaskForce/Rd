@@ -19,6 +19,11 @@ NULL
 
 #' @describeIn testing-Rd test if object is a valid Rd string type.
 #' @export
+#' @examples
+#' is_Rd_string('nope')
+#' is_Rd_string(structure('Valid but not strict', Rd_tag='TEXT'))
+#' is_Rd_string(structure('Valid but not strict', Rd_tag='TEXT'), strict=TRUE)
+#' is_Rd_string(Rd_text('Valid and strict'), strict=TRUE)
 is_Rd_string <-
 function(x, tags=NULL, strict=FALSE, reason=TRUE){
     tags <- if (is.null(tags)) .Rd.string.tags else
@@ -63,6 +68,10 @@ if(FALSE){#@testing
 }
 #' @describeIn testing-Rd Vector version of is_Rd_string.
 #' @export
+#' @examples
+#' are_Rd_strings(Rd( Rd_alias('example'), '\n'
+#'                  , Rd_name('example'), '\n'
+#'                  ))
 are_Rd_strings <-
 function(x, tags=NULL, strict=FALSE){
     purrr::map_lgl(x, is_Rd_string, tags=tags, strict=strict, reason=FALSE)
@@ -87,6 +96,9 @@ if(FALSE){#@testing
 
 #' @describeIn testing-Rd Check if a list is a valid `Rd_tag` object.
 #' @export
+#' @examples
+#' is_Rd_tag(Rd('text'))
+#' is_Rd_tag(Rd_alias('alias'))
 is_Rd_tag <-
 function(x, tags = NULL, strict=FALSE, reason=TRUE){
     assert_that( is.null(tags)
@@ -135,6 +147,10 @@ if(FALSE){#@testing
 
 #' @describeIn testing-Rd Vector version of is_Rd_tag
 #' @export
+#' @examples
+#' are_Rd_tags(Rd( Rd_alias('example'), '\n'
+#'               , Rd_name('example'), '\n'
+#'               ))
 are_Rd_tags <- function(x, tags=NULL, strict=FALSE){
     purrr::map_lgl(x, is_Rd_tag, tags=tags, strict=strict, reason=FALSE)
 }
@@ -157,8 +173,13 @@ if(FALSE){#@testing
 
 #' @describeIn testing-Rd check if a list is an Rd container object.
 #' @export
+#' @examples
+#' is_Rd(list())
+#' is_Rd(list(), strict=TRUE)
+#' is_Rd(Rd(), strict=TRUE)
 is_Rd <- function(x, strict=FALSE){
-    see_if( !strict || inherits(x, 'Rd')
+    see_if( see_if( !strict || inherits(x, 'Rd')
+                  , msg = "strict is TRUE but x does not inherit from class Rd")
           , is.list(x)
           , is.null(attr(x, 'Rd_tag'))
           )
@@ -172,9 +193,9 @@ if(FALSE){#@testing
     expect_true(is_Rd(unclass(x)))
     expect_true(is_Rd(x, strict=TRUE))
     expect_identical(is_Rd(list(), strict=TRUE)
-                    , s(FALSE, msg="!strict is not TRUE or x does not inherit from class Rd"))
+                    , s(FALSE, msg="strict is TRUE but x does not inherit from class Rd"))
     expect_identical(is_Rd(unclass(x), strict=TRUE)
-                    , s(FALSE, msg="!strict is not TRUE or x does not inherit from class Rd"))
+                    , s(FALSE, msg="strict is TRUE but x does not inherit from class Rd"))
     expect_identical(is_Rd(character(0), strict=FALSE)
                     , s(FALSE, msg="x is not a list"))
     expect_true(is_Rd(list()))
@@ -188,6 +209,10 @@ if(FALSE){#@testing
 #'                        an `Rd_tag` or `Rd`, but not an `Rd_string`
 #' @param deep should contained elements also be checked for validity?
 #' @export
+#' @examples
+#' is_valid_Rd_list(Rd_name('name'))
+#' is_valid_Rd_list(Rd('text'))
+#' is_valid_Rd_list(Rd_text('text'))
 is_valid_Rd_list <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) || !missing(tags)){
     if (is.character(x)) return(FALSE) else
     valid <- if (is.list(x) && !is.null(attr(x, 'Rd_tag'))){
@@ -202,6 +227,10 @@ is_valid_Rd_list <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) ||
 
 #' @describeIn testing-Rd Check that an object is valid
 #' @export
+#' @examples
+#' is_valid_Rd_object(Rd_name('name'))
+#' is_valid_Rd_object(Rd('text'))
+#' is_valid_Rd_object(Rd_text('text'))
 is_valid_Rd_object <- function(x, tags=NULL, strict=FALSE, deep=!isTRUE(strict) || !missing(tags)){
     if (is.character(x)){
         return(is_Rd_string(x, tags=intersect(.Rd.string.tags, tags), strict=isTRUE(strict), reason=FALSE))
@@ -235,6 +264,8 @@ if(FALSE){#@testing is_valid_Rd_object against parse_Rd results
     expect_true(is_valid_Rd_object(txt, strict=FALSE, deep=TRUE))
 }
 
+## Text Testing #####
+
 #' Check if an element is a newline
 #' @param x object to check
 is_Rd_newline <- function(x){
@@ -253,8 +284,6 @@ if(FALSE){#@testing
     expect_false(is_Rd_newline(.Rd(Rd.newline)))
     expect_false(is_Rd_newline(Rd_verb('\n')))
 }
-
-## Text Testing #####
 
 Rd_spans_multiple_lines <- function(x){
     grepl('\\n(?!$)', format(x), perl=TRUE)
@@ -302,6 +331,3 @@ if(FALSE){#@testing
     expect_true(Rd_starts_with_newline(txt[['\\arguments']]))
     expect_false(Rd_starts_with_newline(txt[['\\arguments']], TRUE))
 }
-
-
-
