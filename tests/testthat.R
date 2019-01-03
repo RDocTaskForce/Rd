@@ -2,5 +2,4 @@
 # Once present, this file will not be overwritten and changes will persist.
 # To recreate the default version of this file delete and rerun `extract_tests`.
 library(testthat)
-library(testextra)
 test_check("Rd")

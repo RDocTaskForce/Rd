@@ -28,7 +28,7 @@ Rd_clean_indent <-
 function(indent.with, type=get_Rd_tag(indent.with)){
     if(is.null(type)) type = 'TEXT'
     if(is.character(indent.with)){
-        assert_that(testextra::is_nonempty_string(indent.with))
+        assert_that(is_nonempty_string(indent.with))
         if (is(indent.with, 'character')) {
             indent.with <- .Rd(Rd_string(indent.with, type))
         } else
