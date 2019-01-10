@@ -4,11 +4,16 @@ Title: Rd Manipulation and Creation
 Version: 0.1.0
 Authors@R: c(
     person("Andrew", "Redd", , "andrew.redd@hsc.utah.edu", c("aut", "cre")),
-    person("R Documentation Task Force", role=c("aut"))
+    person("R Documentation Task Force", role=c("aut")
+          , comment = c(url = "https://rdoctaskforce.github.io/")
+          )
     )
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 License: GPL-2
-Description: R Documentation (Rd) as an R object creation and manipulation.
+Description: Creation and manipulation of R documentation (Rd) as 
+    R objects.  Also contains functions for checking consistency 
+    of Rd and S4 generics and methods for converting  
+    objects to Rd formatted output.
 Imports:
     assertthat,
     methods,
