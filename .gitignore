@@ -4,3 +4,4 @@
 .Ruserdata
 tests/testthat/test-*.R
 man/*.Rd
+.Rprofile

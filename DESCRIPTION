@@ -21,6 +21,7 @@ Imports:
     postlogic,
     purrr,
     rlang,
+    testthat,
     tools,
     utils 
 Suggests:
@@ -38,6 +39,7 @@ Collate:
     'util-aliases.R'
     'Class-Rd.R'
     'Fun-toRd.R'
+    'Rd_lines.R'
     'S3_extensions.R'
     'canon.R'
     'construction.R'

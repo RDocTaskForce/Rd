@@ -34,26 +34,6 @@ if(FALSE){#@testing cleanup utilities.
     expect_null(get_Rd_tag(Rd_untag(txt[[1]])))
 }
 
-Rd_lines <- function(l, ...){
-    assert_that(is_valid_Rd_list(l))
-    val <- if (all(are_Rd_strings(l, 'RCODE')))
-            Rd_canonize(cl(undim(rbind(l, .Rd(Rd_rcode("\n")))), 'Rd'), ...)
-        else
-            Rd_canonize(cl(undim(rbind(l, .Rd(Rd_text("\n")))), 'Rd'), ...)
-    if (tail(val, 1L)=='\n')
-        val <- head(val, -1L)
-    return(val)
-}
-if(FALSE){#@testing
-    l <- list( Rd_rcode("value \\%if\\% proposition")
-             , Rd_rcode("proposition \\%otherwise\\% alternate")
-             , Rd_rcode('')
-             )
-    exp <- Rd( Rd_rcode("value \\%if\\% proposition\n")
-             , Rd_rcode("proposition \\%otherwise\\% alternate\n"))
-    val <- Rd_lines(l)
-    expect_identical(val, exp)
-}
 
 ensure_ends_with_newline <- function(rd, .check=TRUE){
     if (is.list(rd)){
