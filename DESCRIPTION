@@ -1,7 +1,7 @@
 Package: Rd
 Type: Package
 Title: Rd Manipulation and Creation
-Version: 0.1.0
+Version: 0.1.0.9999
 Authors@R: c(
     person("Andrew", "Redd", , "andrew.redd@hsc.utah.edu", c("aut", "cre")),
     person("R Documentation Task Force", role=c("aut")
