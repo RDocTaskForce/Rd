@@ -156,27 +156,19 @@ Rd_canonize_text <- function(rd, .check = TRUE, ...){
             if (lines =='\n') return(Rd.newline)
             return(forward_attributes(list(Rd_text(lines)), rd))
         }
-        # lines <- ifelse( lines == '\n'
-        #                , .Rd.newline
-        #                , ifelse( is_whitespace(lines)
-        #                        , lapply(lines, structure
-        #                                , Rd_tag="TEXT"
-        #                                , class='Rd_string')
-        #                        , lapply(lines, Rd_text))
-        #                        )
         lines <- lapply(lines, structure, Rd_tag="TEXT", class='Rd_string')
         return(fwd(lines, rd))
     } else if (!any(purrr::map_lgl(rd, is.list))){
         return(rd)
     } else if (!any(are.strings)) {
-        return(fwd(lapply(rd, Rd_canonize_text), rd))
+        return(fwd(lapply(rd, Rd_canonize_text, .check=FALSE, ...), rd))
     } else {
         group <- cumsum(abs(!are.strings | c(FALSE, head(!are.strings, -1))))
         is.text <- purrr::map_lgl(split(are.strings, group), all)
         parts <- split(rd, group)
 
         for (j in seq_along(parts))
-            parts[[j]] <- Recall(parts[[j]], .check=FALSE)
+            parts[[j]] <- Recall(parts[[j]], .check=FALSE, ...)
 
         return(fwd( unlist(parts, FALSE, FALSE), rd))
     }
@@ -211,15 +203,23 @@ Rd_canonize_code <- function(rd, .check=TRUE, ...){
     are.code <- are_Rd_strings(rd, 'RCODE')
     if (any(are.code)) {
         type <- unique(purrr::map_chr(rd, get_attr, 'Rd_tag', ''))
-        assert_that(length(type)==1L
+        assert_that(length(setdiff(type, c("\\S4method", "\\S3method")))==1L
                    , msg = "RCODE type strings may not appear in a " %<<%
                            "container with any other type." )
-
-        lines <- stringi::stri_split(collapse0(unlist(rd)), regex="(?<=\\n)")[[1]]
-        lines <- lines[nchar(lines)>0L]
-        lines <- lapply(lines, Rd_rcode)
-        return(forward_attributes(lines, rd))
-
+        if (all(are.code)) {
+            lines <- stringi::stri_split(collapse0(unlist(rd)), regex="(?<=\\n)")[[1]]
+            lines <- lines[nchar(lines)>0L]
+            lines <- lapply(lines, Rd_rcode)
+            return(forward_attributes(lines, rd))
+        } else {
+            is.tag <- sapply(rd, is_Rd_tag)
+            groups <- cumsum(is.tag | c(FALSE, head(is.tag, -1L)))
+            parts <- split(rd, groups)
+            is.tag <- sapply(split(is.tag, groups), any)
+            for (i in seq_along(parts)) if (!is.tag[[i]])
+                parts[[i]] <- Rd_canonize_code(parts[[i]], .check=FALSE)
+            return(fwd(unlist(parts, recursive = FALSE), rd))
+        }
     } else {
         return(forward_attributes( lapply(rd, Rd_canonize_code, .check=FALSE), rd))
     }
@@ -246,4 +246,18 @@ if(FALSE){#@testing
               )
     expect_error(Rd_canonize_code(bad)
                 , "RCODE type strings may not appear in a  container with any other type\\.")
+}
+if(FALSE){#@testing code with tags.
+    rd <- .Rd( Rd_rcode('\n')
+             , Rd_tag("\\S4method", Rd("name"), Rd("signature"))
+             , Rd_rcode("(x, ...)")
+             , Rd_rcode('\n')
+             )
+    val <- Rd_canonize_code(rd)
+    expect_identical( val
+                    , .Rd( Rd_rcode('\n')
+                         , Rd_tag("\\S4method", Rd("name"), Rd("signature"))
+                         , Rd_rcode("(x, ...)\n")
+                         ))
+
 }
