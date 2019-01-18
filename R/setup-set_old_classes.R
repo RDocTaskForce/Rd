@@ -40,7 +40,6 @@ if(FALSE){#@testing Old classes
     expect_false(is(Rd_tag('\\strong', Rd_text('text'), .check=FALSE), 'list'))
 }
 
-#' @export
 setAs('Rd_tag', 'Rd', function(from){
     assert_that(is_valid_Rd_list(from))
     .Rd(from)
