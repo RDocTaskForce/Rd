@@ -307,27 +307,30 @@ if(FALSE){#@testing
     expect_true(Rd_spans_multiple_lines(x))
 }
 
-Rd_ends_with_newline <- function(x, keep.class=FALSE){
-    if (is(x, 'Rd_tag') && keep.class) x <- .Rd(x)
+Rd_ends_with_newline <- function(x){
+    # if (is(x, 'Rd_tag')){
+    #     if (keep.class) x <- .Rd(x) else class(x) <- 'Rd'
+    # }
     grepl('\\n$', collapse0(as.character(x)))
 }
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_true(Rd_ends_with_newline(txt))
 
-    x <- txt[[38]]
+    x <- txt[["\\usage"]]
+    expect_Rd_tag(x, "\\usage")
 
-    expect_true(Rd_ends_with_newline(x))
-    expect_false(Rd_ends_with_newline(x, TRUE))
+    expect_true(Rd_ends_with_newline(unclass(x)))
+    expect_false(Rd_ends_with_newline(x))
 }
 
-Rd_starts_with_newline <- function(x, keep.class=FALSE){
-    if (is(x, 'Rd_tag') && keep.class) x <- .Rd(x)
+Rd_starts_with_newline <- function(x){
+    # if (is(x, 'Rd_tag') && keep.class) x <- .Rd(x)
     grepl('^\\n', collapse0(as.character(x)))
 }
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_false(Rd_starts_with_newline(txt))
-    expect_true(Rd_starts_with_newline(txt[['\\arguments']]))
-    expect_false(Rd_starts_with_newline(txt[['\\arguments']], TRUE))
+    expect_true(Rd_starts_with_newline(unclass(txt[['\\arguments']])))
+    expect_false(Rd_starts_with_newline(txt[['\\arguments']]))
 }
