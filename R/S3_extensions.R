@@ -305,3 +305,33 @@ if(FALSE){#@testing as.character, format, and print.
                    "}"
                  , fixed=TRUE)
 }
+
+#' @export
+compare.Rd <- function(x, y, ..., ignore.srcref = TRUE, max_diffs = 9){
+    if (ignore.srcref){
+        x <- Rd_rm_srcref(x)
+        y <- Rd_rm_srcref(y)
+    }
+    same <- all.equal(x,y,...)
+    if (length(same) > max_diffs) {
+        same <- c(same[1:max_diffs], "...")
+    }
+    cl(list( equal = identical(same, TRUE)
+           , message = collapse(as.character(same), '\n')
+           ), "comparison")
+}
+#' @export
+compare.Rd_tag <- compare.Rd
+if(FALSE){#@testing
+    constructed <- Rd_name("test")
+    txt <- "\\name{test}"
+    parsed <- tools::parse_Rd(textConnection(txt))[[1]]
+    expect_true(is_Rd_tag(parsed, "\\name"))
+
+    expect_identical( compare.Rd(constructed, parsed)
+                    , cl(list(equal= TRUE, message= "TRUE"), 'comparison')
+                    )
+    val <- compare.Rd(constructed, parsed, ignore.srcref = FALSE)
+    expect_false(val$equal)
+    expect_equal(constructed, parsed)
+}

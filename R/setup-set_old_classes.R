@@ -3,6 +3,7 @@
 #' @importFrom assertthat is.count is.flag is.string see_if validate_that
 #' @importFrom methods is
 #' @importFrom utils bibentry person tail head
+#' @importFrom testthat compare
 # @importFrom testextra are all_inherit is_exactly class0
 
 
