@@ -127,9 +127,6 @@ function( rd   #< Rd object.
         , .check=TRUE
         ){
     if (.check) assert_that(is_valid_Rd_list(rd))
-    type <- if (length(rd)>0 && is_Rd_string(rd[[1]], 'RCODE')) 'RCODE'
-            else 'TEXT'
-    indent.with <- Rd_clean_indent(indent.with, type)
     if (recursive) for (i in seq_len(length(rd))) {
         if ( is.list(rd[[i]]) && ( Rd_spans_multiple_lines(rd[[i]]))
            ) {
@@ -140,13 +137,16 @@ function( rd   #< Rd object.
                              , indent.with  = indent.with
                              , recursive = recursive
                              , ...
-                             , no.first = ( i > 1 && !Rd_ends_with_newline(rd[[i-1]]))
+                             , no.first = ( i > 1 && !tail(Rd_ends_with_newline(rd[[i-1]]), 1))
                              , .check=FALSE
                              )
         }
     }
     if (Rd_spans_multiple_lines(rd)) rd
     parts <- Rd_split(rd)
+    type <- if (length(rd)>0 && is_Rd_string(rd[[1]], 'RCODE')) 'RCODE'
+            else 'TEXT'
+    indent.with <- Rd_clean_indent(indent.with, type)
     indents <- ifelse( sapply(parts, is_Rd_newline)
                      , list(Rd()), list(indent.with))
     if(no.first) indents[[1]] <- Rd()
