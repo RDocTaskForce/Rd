@@ -154,6 +154,22 @@ if(FALSE){#@testing check_content(., .check=TRUE)
                 , "Elements 1, 2 of elements.are.valid are not true")
 }
 
+add_newlines <- function(content){
+    if (!is_Rd(content)) class(content) <- 'Rd'
+    if (Rd_spans_multiple_lines(content)){
+        if(all_are_exactly(content, 'Rd')){
+            for (i in seq_along(content))
+                content[[i]] <- Recall(content[[i]])
+        } else {
+            type <- if (get_Rd_tag(content[[1]]) == 'RCODE') 'RCODE' else 'TEXT'
+            nl <- .Rd(Rd_string('\n', type))
+            if (!Rd_starts_with_newline(content)) content <- Rd_canonize_text(Rd_c(nl, content))
+            if (!Rd_ends_with_newline(content)) content <- Rd_canonize_text(Rd_c(content, nl))
+        }
+    }
+    return(content)
+}
+
 
 # String Construction -----------------------------------------------------------------
 #' @name Rd_string_creation
@@ -436,14 +452,9 @@ function( tag
     if (length(opt))
         assert_that(is_valid_Rd_object(opt))
     content <- cl(content, 'Rd')
-    if (Rd_spans_multiple_lines(cl(content, 'Rd'))) {
-        type <- if (get_Rd_tag(content[[1]]) == 'RCODE') 'RCODE' else 'TEXT'
-        nl <- .Rd(Rd_string('\n', type))
-        if (!Rd_starts_with_newline(content)) content <- Rd_c(nl, content)
-        if (!Rd_ends_with_newline(content)) content <- Rd_c(content, nl)
-        if (indent)
-            content <- Rd_indent(content, indent.with = indent.with)
-    }
+    content <- add_newlines(content)
+    if (indent)
+        content <- Rd_indent(content, indent.with = indent.with)
     val <- s( content
             , Rd_tag = tag
             , class  = 'Rd_tag'

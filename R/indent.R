@@ -169,7 +169,7 @@ if(FALSE){#@testing Rd_indent for Rd_tag
                 )[2:3]
     expect_identical( format(Rd_indent(rd, '             ', indent.first = FALSE))
                     ,"\\description{a description without" %\%
-                      "             a leading newline}")
+                      "             a leading newline\n}")
     expect_identical( Rd_indent(rd, .Rd.default.indent, no.first = FALSE)
                     , Rd_tag('\\description'
                             , Rd_text("  a description without\n")
