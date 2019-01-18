@@ -94,3 +94,43 @@ expect_Rd_bare <- function(object, info=NULL, label = NULL){
     val <- see_if(is_Rd(object, strict=TRUE))
     testthat::expect(val, act$label %<<% attr(val, 'msg'), info)
 }
+
+
+
+#' Compact a list into an Rd vector
+#'
+#' When creating Rd from other objects it is common to
+#' itterate over a vector or list and convert each [to Rd](toRd())
+#' then combine the results. However [toRd()] can return an [Rd_string],
+#' [Rd_tag], or an [Rd] container. to combine these together
+#' intelligently, use `Rd_compact` which converts each to an Rd
+#' container, placing strings and tags in a container, then
+#' concatenating all together.
+#'
+#' @param l list of Rd objects.
+#'
+#' @export
+Rd_compact <- function(l){
+    assert_that( is.list(l)
+               , all(purrr::map_lgl(l, is_valid_Rd_object))
+               )
+    if (is(l, 'Rd_tag')) return(.Rd(l))
+    for (i in seq_along(l)) if (!is_exactly(l[[i]], 'Rd'))
+        l[[i]] <- .Rd(l[[i]])
+    cl(unlist(l, recursive = FALSE), 'Rd')
+}
+if(FALSE){#@testing
+    l <- list( Rd_text('testing ')
+             , Rd_code('Rd_compact()')
+             , Rd(' with a list of Rd objects.')
+             )
+    expect_is_exactly(l[[1]], 'Rd_string')
+    expect_is_exactly(l[[2]], 'Rd_tag')
+    expect_is_exactly(l[[3]], 'Rd')
+    val <- Rd_compact(l)
+    expect_length(val, 3)
+    expect_is_exactly(val, 'Rd')
+    expect_is_exactly(val[[1]], 'Rd_string')
+    expect_is_exactly(val[[2]], 'Rd_tag')
+    expect_is_exactly(val[[3]], 'Rd_string')
+}
