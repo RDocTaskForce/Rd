@@ -2,12 +2,17 @@ Package: Rd
 Type: Package
 Title: Rd Manipulation and Creation
 Version: 0.1.0.9999
-Authors@R: c(
-    person("Andrew", "Redd", , "andrew.redd@hsc.utah.edu", c("aut", "cre")),
-    person("R Documentation Task Force", role=c("aut")
+Authors@R: c( 
+    person("Andrew", "Redd", role = c("aut", "cre")
+          , email = "andrew.redd@hsc.utah.edu"
+          , comment = c(ORCID = "https://orcid.org/000-0002-6149-2438")
+          ), 
+    person("R Documentation Task Force", role=c("ctb")
           , comment = c(url = "https://rdoctaskforce.github.io/")
-          )
-    )
+          ),
+    person("R Consortium", role=c("fnd", "cph")
+          , comment = c(url = "https://www.r-consortium.org")
+          ))
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 License: GPL-2
 Description: Creation and manipulation of R documentation (Rd) as 
