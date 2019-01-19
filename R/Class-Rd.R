@@ -320,8 +320,8 @@ if(FALSE){#@testing
     x <- txt[["\\usage"]]
     expect_Rd_tag(x, "\\usage")
 
-    expect_true(Rd_ends_with_newline(unclass(x)))
-    expect_false(Rd_ends_with_newline(x))
+    expect_true(Rd_ends_with_newline(x))
+    expect_false(Rd_ends_with_newline(Rd(x)))
 }
 
 Rd_starts_with_newline <- function(x){
@@ -331,6 +331,6 @@ Rd_starts_with_newline <- function(x){
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_false(Rd_starts_with_newline(txt))
-    expect_true(Rd_starts_with_newline(unclass(txt[['\\arguments']])))
-    expect_false(Rd_starts_with_newline(txt[['\\arguments']]))
+    expect_true(Rd_starts_with_newline(txt[['\\arguments']]))
+    expect_false(Rd_starts_with_newline(Rd(txt[['\\arguments']])))
 }

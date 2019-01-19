@@ -28,8 +28,7 @@ Suggests:
     covr,
     htmltools,
     rmarkdown (>= 1.8),
-    stringi,
-    testthat
+    stringi
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1

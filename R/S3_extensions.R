@@ -266,9 +266,6 @@ if(FALSE){#@testing
 format.Rd <- function(x, ...)collapse0(as.character(x, ...))
 
 #' @export
-as.character.Rd_tag <- function(x, ...)as.character(.Rd(x), ...)
-
-#' @export
 format.Rd_tag <- function(x, ...)collapse0(as.character(.Rd(x), ...))
 
 #' @export

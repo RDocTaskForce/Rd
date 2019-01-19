@@ -533,4 +533,16 @@ if(FALSE){#@testing validObject(Rd_tag)
     expect_true(is_valid_Rd_object(desc))
     expect_true(validObject(desc, TRUE))
 }
-
+if(FALSE){#@testing Rd_tag edge case all elements are Rd.
+    content <- collapse(strwrap(stringi::stri_rand_lipsum(1), 72), '\n')
+    rd <- Rd_tag( "\\section"
+                , content = list( Rd("Title")
+                                , Rd(content)
+                                )
+                )
+    expect_Rd_tag(rd, '\\section')
+    expect_Rd_bare(rd[[1]])
+    expect_Rd_bare(rd[[2]])
+    expect_true(head(rd[[2]], 1) == '\n')
+    expect_true(tail(rd[[2]], 1) != '\n')
+}
