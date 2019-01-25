@@ -291,8 +291,8 @@ Rd_spans_multiple_lines <- function(x){
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_true(Rd_spans_multiple_lines(txt))
-    expect_true(Rd_spans_multiple_lines(txt[['\\arguments']]))
-    expect_false(Rd_spans_multiple_lines(txt[['\\arguments']][[3L]]))
+    expect_true(Rd_spans_multiple_lines(Rd_get_element(txt, '\\arguments')))
+    expect_false(Rd_spans_multiple_lines(Rd_get_element(txt, '\\arguments')[[3L]]))
 
     expect_false(Rd_spans_multiple_lines(Rd_text("hello world\n")))
     expect_true(Rd_spans_multiple_lines(Rd_text("hello\nworld\n")))
@@ -317,7 +317,7 @@ if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_true(Rd_ends_with_newline(txt))
 
-    x <- txt[["\\usage"]]
+    x <- Rd_get_element(txt, "\\usage")
     expect_Rd_tag(x, "\\usage")
 
     expect_true(Rd_ends_with_newline(x))
@@ -331,6 +331,6 @@ Rd_starts_with_newline <- function(x){
 if(FALSE){#@testing
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_false(Rd_starts_with_newline(txt))
-    expect_true(Rd_starts_with_newline(txt[['\\arguments']]))
-    expect_false(Rd_starts_with_newline(Rd(txt[['\\arguments']])))
+    expect_true(Rd_starts_with_newline(Rd_get_element(txt, '\\arguments')))
+    expect_false(Rd_starts_with_newline(Rd(Rd_get_element(txt, '\\arguments'))))
 }

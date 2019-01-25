@@ -528,7 +528,7 @@ if(FALSE){#@testing validObject(Rd_tag)
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     expect_is(txt, 'Rd')
 
-    desc <- txt[['\\description']]
+    desc <- Rd_get_element(txt, '\\description')
     expect_Rd_tag(desc, '\\description')
     expect_true(is_valid_Rd_object(desc))
     expect_true(validObject(desc, TRUE))

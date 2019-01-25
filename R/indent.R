@@ -104,6 +104,7 @@ if(FALSE){#@testing Rd_clean_indent expected output
     expect_identical(Rd_clean_indent(Rd_rcode('  ')), .Rd(Rd_rcode('  ')))
 }
 
+
 #' Indent Rd
 #'
 #' @param rd an [Rd] container or an [Rd tag][Rd_tag()].
@@ -168,8 +169,9 @@ if(FALSE){#@testing Rd_indent for Rd_tag
                 , .check=FALSE
                 )[2:3]
     expect_identical( format(Rd_indent(rd, '             ', indent.first = FALSE))
-                    ,"\\description{a description without" %\%
-                      "             a leading newline\n}")
+                    , "\\description{a description without" %\%
+                      "             a leading newline" %\%
+                      "}")
     expect_identical( Rd_indent(rd, .Rd.default.indent, no.first = FALSE)
                     , Rd_tag('\\description'
                             , Rd_text("  a description without\n")
@@ -202,7 +204,7 @@ if(FALSE){#@testing Rd_indent expected output.
 if(FALSE){#@testing with parsed Rd
     txt <- tools::parse_Rd(system.file("examples", "Normal.Rd", package = 'Rd'))
     txt <- Rd_rm_srcref(txt)
-    x <- txt[['\\examples']]
+    x <- Rd_get_element(txt, '\\examples')
 
     val <- Rd_indent(x, indent.with = Rd_rcode("    "))
     expect_Rd_tag(val, '\\examples')
@@ -212,7 +214,7 @@ if(FALSE){#@testing with parsed Rd
                     )
     expect_equal(length(val), length(x))
 
-    x <- txt[['\\arguments']][[9]]
+    x <- Rd_get_element(txt, "\\arguments")[[9]]
     val <- Rd_indent(x, indent.with='  ')
     expect_Rd_tag(val, '\\item')
     exp <- s(.Rd( Rd(Rd_text('n'))
@@ -222,13 +224,13 @@ if(FALSE){#@testing with parsed Rd
     exp <- Rd_canonize_text(exp)
     expect_identical(val, exp)
 
-    x <- Rd_untag(txt[['\\arguments']][8:10])
+    x <- Rd_untag(Rd_get_element(txt, "\\arguments")[8:10])
     val <- Rd_indent(x, indent=TRUE, indent.with='  ', no.first=TRUE)
     expect_equal(format(val)
                 , "  \\item{n}{number of observations. If \\code{length(n) > 1}, the length" %\%
                   "      is taken to be the number required.}\n" )
 
-    x <- txt[['\\arguments']]
+    x <- Rd_get_element(txt, "\\arguments")
     val <- Rd_indent(x, indent=TRUE, indent.with='  ')
     expect_equal( format(val)
                 , "\\arguments{" %\%
