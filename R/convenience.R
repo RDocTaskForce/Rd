@@ -69,13 +69,15 @@ function( ...
         , indent = getOption("Rd::indent", TRUE)
         , indent.with = getOption("Rd::indent.with", '  ')
         ){
-    indent.with <- Rd_clean_indent(indent.with)
     assert_that( all(are_Rd_tags(items, '\\item') ))
-    content <- undim(rbind( indent.with %if% indent
-                          , items
-                          , Rd.newline
-                          ))
-    Rd_tag(tag='\\arguments', content=content)
+    Rd_list("\\arguments", items=items
+           , indent=indent, indent.with=indent.with)
+    # indent.with <- Rd_clean_indent(indent.with)
+    # content <- undim(rbind( indent.with %if% indent
+    #                       , items
+    #                       , Rd.newline
+    #                       ))
+    # Rd_tag(tag='\\arguments', content=content)
 }
 if(FALSE){#@testing
     items <- .Rd( Rd_item('a', 'first')
@@ -151,6 +153,34 @@ if(FALSE){#@testing
     expect_Rd_string(val[[2]], 'TEXT')
 }
 
+#' @describeIn shortcuts Create an enumerated list.
+#' @export
+#' @examples
+#' Rd_enumerate(Rd_item("first"), Rd_item("second"))
+#' Rd_enumerate( Rd_item("first", "comes before second.")
+#'             , Rd_item("second", "comes after first."))
+Rd_enumerate <-
+function(..., items=list(...)
+        , indent = getOption("Rd::indent", TRUE)
+        , indent.with = getOption("Rd::indent.with", '  ')
+        ){
+    Rd_list("\\enumerate", items=items
+           , indent=indent, indent.with=indent.with)
+}
+if(FALSE){#@testing
+    rd <- Rd_enumerate( Rd_item("first")
+                      , Rd_item("second"))
+    expect_Rd_tag(rd, "\\enumerate")
+    expect_equal( format(rd)
+                , "\\enumerate{" %\%
+                  "  \\item first" %\%
+                  "  \\item second" %\%
+                  "}"
+                )
+    expect_error(Rd_itemize( Rd_item("first")
+                    , Rd_item("second", "description")))
+}
+
 #' @describeIn shortcuts Create an examples tag.
 #' @export
 Rd_examples <- function(..., content=list(...)) {
@@ -220,6 +250,93 @@ if(FALSE){#@testing
     expect_Rd_bare(val[[2L]])
     expect_identical(format(val), "\\item{\\code{a}:}{the first letter of the alphabet}")
 }
+is_item <- function(rd){
+    is_Rd_tag(rd, '\\item') ||
+    ( is_Rd(rd, strict=TRUE)
+    && length(rd) > 1L
+    && identical(rd[[1]], Rd_tag("\\item"))
+    )
+}
+if(FALSE){#@testing
+    expect_true(is_item(Rd_item("test")))
+    expect_true(is_item(Rd_item("test")))
+    expect_false(is_item(Rd("test")))
+}
+are_items <- function(items)
+    purrr::map_lgl(items, is_item)
+if(FALSE){#@testing
+    val <- are_items(list( Rd_item('test')
+                         , Rd_item('test', 'description')
+                         , Rd("item")))
+    expect_identical(val, c(TRUE, TRUE, FALSE))
+}
+
+#' @describeIn shortcuts Create an itemized list.
+#' @export
+#' @examples
+#' Rd_itemize(Rd_item("first"), Rd_item("second"))
+#' Rd_itemize( Rd_item("first", "comes before second.")
+#'           , Rd_item("second", "comes after first."))
+Rd_itemize <-
+function(..., items=list(...)
+        , indent = getOption("Rd::indent", TRUE)
+        , indent.with = getOption("Rd::indent.with", '  ')
+        ){
+    Rd_list("\\itemize", items=items
+           , indent=indent, indent.with=indent.with)
+}
+if(FALSE){#@testing
+    rd <- Rd_itemize( Rd_item("first")
+                    , Rd_item("second"))
+    expect_Rd_tag(rd, "\\itemize")
+    expect_equal( format(rd)
+                , "\\itemize{" %\%
+                  "  \\item first" %\%
+                  "  \\item second" %\%
+                  "}"
+                )
+    expect_error(Rd_itemize( Rd_item("first")
+                    , Rd_item("second", "description")))
+}
+
+Rd_list <-
+function( tag, ..., items=list(...)
+        , indent = getOption("Rd::indent", TRUE)
+        , indent.with = getOption("Rd::indent.with", '  ')
+        , .check=TRUE
+        ){
+    assert_that(all(are_items(items)))
+    are.tags <- are_Rd_tags(items, '\\item')
+    if(any(are.tags))
+        assert_that( all(are.tags)
+                   , msg="Two argument items may not be mixed" %<<%
+                         "with generic items.")
+    indent.with <- Rd_clean_indent(indent.with)
+    content <- undim(rbind( indent.with %if% indent
+                          , items
+                          , Rd.newline
+                          ))
+    if (!any(are.tags)) content <-Rd_compact(content)
+    Rd_tag(tag, content=content)
+}
+if(FALSE){#@testing
+    rd <- Rd_list( "\\itemize"
+                 , Rd_item("first")
+                 , Rd_item("second"))
+    expect_Rd_tag(rd, "\\itemize")
+    expect_equal( format(rd)
+                , "\\itemize{" %\%
+                  "  \\item first" %\%
+                  "  \\item second" %\%
+                  "}"
+                )
+
+    expect_error(Rd_list( "\\itemize"
+                        , Rd_item("first")
+                        , Rd_item("second", "description")))
+}
+
+
 
 #' @describeIn shortcuts Create a keyword tag.
 #' @param key A string denoting a valid Rd keyword.
