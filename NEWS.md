@@ -2,7 +2,7 @@
 
 * Improved canonization
 * Added Rd_compact for compacting results of a map/apply function.
-* Added testthat::compare methods for Rd and Rd_tag
+* Added `testthat::compare` methods for Rd and Rd_tag
 * Added conversion Rd_tag to Rd
 * Added convenience functions:
     + Rd_list

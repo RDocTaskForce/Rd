@@ -100,7 +100,7 @@ expect_Rd_bare <- function(object, info=NULL, label = NULL){
 #' Compact a list into an Rd vector
 #'
 #' When creating Rd from other objects it is common to
-#' itterate over a vector or list and convert each [to Rd](toRd())
+#' iterate over a vector or list and convert each [to Rd](toRd())
 #' then combine the results. However [toRd()] can return an [Rd_string],
 #' [Rd_tag], or an [Rd] container. to combine these together
 #' intelligently, use `Rd_compact` which converts each to an Rd
