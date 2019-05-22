@@ -1,5 +1,5 @@
 keyword.db <- local({
-    keyword.lines <- readLines(normalizePath(file.path(R.home(), 'doc', 'KEYWORDS.db')))
+    keyword.lines <- readLines(normalizePath(file.path(R.home('doc'), 'KEYWORDS.db')))
     keyword.descriptions <- gsub("^\\s+", "", sapply(strsplit(keyword.lines, ':', fixed=TRUE), getElement, 2))
 
     keyword.heirarchy   <- strsplit(sapply(strsplit(keyword.lines, ':', fixed=TRUE), head, 1), '|', fixed=TRUE)
