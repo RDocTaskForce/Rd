@@ -1,7 +1,7 @@
 Package: Rd
 Type: Package
 Title: Rd Manipulation and Creation
-Version: 0.2.0
+Version: 0.2.0.9000
 Authors@R: c( 
     person("Andrew", "Redd", role = c("aut", "cre")
           , email = "andrew.redd@hsc.utah.edu"
